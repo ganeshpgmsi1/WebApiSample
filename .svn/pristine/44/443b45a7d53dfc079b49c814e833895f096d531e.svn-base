@@ -1,0 +1,46 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Common;
+using UniversalWeather.CMS.API.Domain.Picture;
+using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations.Schema;
+using UniversalWeather.CMS.API.Domain.Comment;
+
+namespace UniversalWeather.CMS.API.Domain.Catalog
+{
+
+    /// <summary>
+    /// Represents a Products
+    /// </summary>
+    public class Product
+    {
+        public Guid ProductId { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string Content { get; set; }
+        public Guid? ManufacturerId { get; set; }
+        public Guid? ProductTemplateId { get; set; }
+        public string MetaKeywords { get; set; }
+        public string MetaDescription { get; set; }
+        public string MetaTitle { get; set; }
+        public string SeName { get; set; }
+        public Guid? DefaultPictureId { get; set; }
+        public Picture.Picture DefaultPicture { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+        [NotMapped]
+        public decimal MaxPrice { get; set; }
+        [NotMapped]
+        public decimal MinPrice { get; set; }
+        public virtual ICollection<ProductVariant> ProductVariants { get; set; }
+        public virtual ICollection<ProductPicture> ProductPictures { get; set; }
+        public virtual ICollection<ProductProductAttribute> ProductProductAttributes { get; set; }
+        public virtual ICollection<Tag.Tag> Tags { get; set; }
+        public virtual ICollection<ProductComment> Comments { get; set; }
+    }
+}

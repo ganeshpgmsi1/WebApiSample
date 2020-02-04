@@ -1,0 +1,203 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4DC91380-2557-4E11-9C52-F8360DA01933}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>UniversalWeather.CMS.API.Domain</RootNamespace>
+    <AssemblyName>UniversalWeather.CMS.API.Domain</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework">
+      <HintPath>..\..\packages\EntityFramework.6.0.2\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json.5.0.8\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Airport\Airport.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Airport\AirportComment.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Airport\AirportHandler.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Airport\AirportPicture.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Airport\MiniAirport.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Appointment\MarkAppointment.cs" />
+    <Compile Include="Infrastructure\ApiUser.cs" />
+    <Compile Include="Post\Category.cs" />
+    <Compile Include="Post\Comment.cs" />
+    <Compile Include="Appointment\Appointment.cs" />
+    <Compile Include="Repository\IAirportRepository.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Repository\IApiUserRecords.cs" />
+    <Compile Include="Repository\IAppointmentRepository.cs" />
+    <Compile Include="Services\IAirportService.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Services\IApiService.cs" />
+    <Compile Include="Services\IAppointmentService.cs" />
+    <Compile Include="BlogRollItem\BlogRollItem.cs" />
+    <Compile Include="Repository\IBlogRollItemRepository.cs" />
+    <Compile Include="Services\IBlogRollItemService.cs" />
+    <Compile Include="Blog\Blog.cs" />
+    <Compile Include="Repository\IBlogRepository.cs" />
+    <Compile Include="Services\IBlogService.cs" />
+    <Compile Include="Catalog\Catalog.cs" />
+    <Compile Include="Catalog\Department.cs" />
+    <Compile Include="Catalog\DepartmentComment.cs" />
+    <Compile Include="Catalog\DepartmentPicture.cs" />
+    <Compile Include="Catalog\DepartmentTemplate.cs" />
+    <Compile Include="Repository\ICatalogRepository.cs" />
+    <Compile Include="Services\ICatalogService.cs" />
+    <Compile Include="Catalog\Manufacturer.cs" />
+    <Compile Include="Catalog\ManufacturerPicture.cs" />
+    <Compile Include="Catalog\ManufacturerTemplate.cs" />
+    <Compile Include="Catalog\Product.cs" />
+    <Compile Include="Catalog\ProductAttribute.cs" />
+    <Compile Include="Catalog\ProductAttributeValue.cs" />
+    <Compile Include="Catalog\ProductAttributeValuePicture.cs" />
+    <Compile Include="Catalog\ProductComment.cs" />
+    <Compile Include="Catalog\ProductPicture.cs" />
+    <Compile Include="Catalog\ProductProductAttribute.cs" />
+    <Compile Include="Catalog\ProductTemplate.cs" />
+    <Compile Include="Catalog\ProductVariant.cs" />
+    <Compile Include="Catalog\ProductVariantComment.cs" />
+    <Compile Include="Catalog\ProductVariantProductAttributeProductAttributeValue.cs" />
+    <Compile Include="Comment\BaseComment.cs" />
+    <Compile Include="Common\IEntity.cs" />
+    <Compile Include="Contact\Contact.cs" />
+    <Compile Include="Contact\ContactType.cs" />
+    <Compile Include="Repository\IContactRepository.cs" />
+    <Compile Include="Services\IContactService.cs" />
+    <Compile Include="Entity\Entity.cs" />
+    <Compile Include="Entity\EntityComment.cs" />
+    <Compile Include="Entity\EntityPicture.cs" />
+    <Compile Include="Repository\IEntityRepository.cs" />
+    <Compile Include="Services\IEntityService.cs" />
+    <Compile Include="Infrastructure\ApiLog.cs" />
+    <Compile Include="Infrastructure\EndpointLogItem.cs" />
+    <Compile Include="Repository\ILocationRepository.cs" />
+    <Compile Include="Services\ILocationService.cs" />
+    <Compile Include="Location\Location.cs" />
+    <Compile Include="Location\LocationComment.cs" />
+    <Compile Include="Location\LocationPicture.cs" />
+    <Compile Include="Repository\IPageRepository.cs" />
+    <Compile Include="Services\IPageService.cs" />
+    <Compile Include="Page\Page.cs" />
+    <Compile Include="Page\PageComment.cs" />
+    <Compile Include="Repository\IPersonRepository.cs" />
+    <Compile Include="Services\IPersonService.cs" />
+    <Compile Include="Person\Person.cs" />
+    <Compile Include="Person\PersonComment.cs" />
+    <Compile Include="Person\PersonPicture.cs" />
+    <Compile Include="Repository\IPictureRepository.cs" />
+    <Compile Include="Services\IPictureService.cs" />
+    <Compile Include="Picture\Picture.cs" />
+    <Compile Include="Repository\IPostRepository.cs" />
+    <Compile Include="Services\IPostService.cs" />
+    <Compile Include="Post\Post.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repository\IApiLogRecords.cs" />
+    <Compile Include="Repository\IRepository.cs" />
+    <Compile Include="Service References\TS3TimeService\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
+    <Compile Include="Survey\Answer.cs" />
+    <Compile Include="Repository\ISurveyRepository.cs" />
+    <Compile Include="Services\ISurveyService.cs" />
+    <Compile Include="Survey\Question.cs" />
+    <Compile Include="Survey\QuestionOption.cs" />
+    <Compile Include="Survey\Survey.cs" />
+    <Compile Include="Survey\SurveyComment.cs" />
+    <Compile Include="Tag\Tag.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="bin\Debug\Newtonsoft.Json.dll" />
+    <Content Include="bin\Debug\Newtonsoft.Json.xml" />
+    <None Include="Service References\TS3TimeService\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+    <None Include="Service References\TS3TimeService\configuration.svcinfo" />
+    <None Include="Service References\TS3TimeService\configuration91.svcinfo" />
+    <None Include="Service References\TS3TimeService\SimpleTimeService.wsdl" />
+    <None Include="Service References\TS3TimeService\TimeService.disco" />
+    <None Include="Service References\TS3TimeService\TimeService.wsdl" />
+    <None Include="Service References\TS3TimeService\TimeService1.xsd" />
+    <None Include="Service References\TS3TimeService\TimeService2.xsd" />
+    <None Include="Service References\TS3TimeService\TimeService3.xsd" />
+    <None Include="Service References\TS3TimeService\UniversalWeather.CMS.API.Domain.TS3TimeService.SunriseSunsetResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\TS3TimeService\UniversalWeather.CMS.API.Domain.TS3TimeService.TimezoneDateTimeResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UniversalWeather.CMS.API.Utilities\UniversalWeather.CMS.API.Utilities.csproj">
+      <Project>{2ea8d68c-f08f-4015-b653-82d2e8916baf}</Project>
+      <Name>UniversalWeather.CMS.API.Utilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Service References\TS3TimeService\TimeService.xsd" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadataStorage Include="Service References\TS3TimeService\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

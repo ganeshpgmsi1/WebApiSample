@@ -1,0 +1,166 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using UniversalWeather.CMS.API.Domain.Location;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Infrastructure.Extensions;
+using UniversalWeather.CMS.API.Infrastructure.Attributes;
+using UniversalWeather.CMS.API.Infrastructure.Handlers;
+using UniversalWeather.CMS.API.Infrastructure;
+
+namespace UniversalWeather.CMS.API.Controllers
+{
+    /// <summary>
+    /// This controller exposes endpoints to access the Locations in the database
+    /// </summary>
+    public class LocationController : ApiController
+    {
+        private readonly ILocationService _locationService;
+        private string newLocation = string.Empty;
+        /// <summary>
+        /// Set the location service
+        /// </summary>
+        /// <param name="service">The location interface</param>
+        public LocationController(ILocationService service)
+        {
+            _locationService = service;
+        }
+
+        /// <summary>
+        /// This gets the Location associated with the Guid parameters
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="fullyload"></param>
+        /// <returns></returns>
+        public async Task<IHttpActionResult> Get(Guid id, bool fullyload = false)
+        {
+            var location = await _locationService.Get(id, fullyload);
+
+            if (location == null)
+                return this.RecordNotFound(string.Format("Location not found for id:{0}", id));
+
+            return Ok(location);
+        }
+
+        /// <summary>
+        /// This gets all the Locations in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of locations</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAll(bool fullyload = false)
+        {
+            var locations = await _locationService.GetAll(fullyload);
+
+            if (locations == null || locations.Count() == 0)
+                return this.RecordNotFound(string.Format("Location not found."));
+
+            return Ok(locations);
+        }
+
+        /// <summary>
+        /// This saves a Location into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="location">The Location to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> Save([FromBody]Location location)
+        {
+            await _locationService.Add(location);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "location", action = "get", id = location.LocationId });
+
+            return Created(newLocation, string.Format("{0} created.", location.Name));
+        }
+
+        /// <summary>
+        /// This deletes a Location by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the location</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> Delete(Guid id)
+        {
+            if (await _locationService.Delete(id) == 0)
+                return this.RecordNotFound(string.Format("Location not found for id: {0}", id));
+
+            return Ok("Location deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a location from a complete Location object.  
+        /// </summary>
+        /// <param name="location">The Location to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> Update([FromBody]Location location)
+        {
+            if (await _locationService.Update(location) == 0)
+                return this.RecordNotFound(string.Format("Location not found for id: {0}", location.LocationId));
+
+            return Ok("Location updated successfully.");
+        }
+
+        #region Comments
+
+        /// <summary>
+        /// This Add a Location Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="locationComment"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveComment([FromBody]LocationComment locationComment)
+        {
+            await _locationService.SaveComment(locationComment);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "location", action = "GetAllComments", id = locationComment.Location.LocationId });
+            return Created(newLocation, string.Format("{0} created.", locationComment.CommentText));
+        }
+
+        /// <summary>
+        /// This updates a Location Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="locationComment"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateComment([FromBody]LocationComment locationComment)
+        {
+            if (await _locationService.UpdateComment(locationComment) == 0)
+                return this.RecordNotFound(string.Format("Comment not found for id: {0}", locationComment.CommentID));
+
+            return Ok("Comment updated successfully.");
+        }
+
+        /// <summary>
+        /// This deletes a Location Comment using specified CommentID
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteComment(Guid commentId)
+        {
+            if (await _locationService.DeleteComment(commentId) == 0)
+                return this.RecordNotFound(string.Format("Comment not found for id: {0}", commentId));
+
+            return Ok("Comment deleted successfully.");
+        }
+
+        /// <summary>
+        /// This method returns all Comments for supplied LocationId
+        /// </summary>
+        /// <param name="locationId"></param>
+        /// <returns></returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllComments(Guid locationId)
+        {
+            var comments = await _locationService.GetAllComments(locationId);
+
+            if (comments == null || comments.Count() == 0)
+                return this.RecordNotFound(string.Format("Comments not found."));
+
+            return Ok(comments);
+        }
+
+        #endregion
+    }
+}

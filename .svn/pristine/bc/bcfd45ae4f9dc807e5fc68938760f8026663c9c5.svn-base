@@ -1,0 +1,885 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using UniversalWeather.CMS.API.Domain.Catalog;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Infrastructure.Extensions;
+using UniversalWeather.CMS.API.Infrastructure.Attributes;
+using UniversalWeather.CMS.API.Infrastructure.Handlers;
+using UniversalWeather.CMS.API.Infrastructure;
+
+namespace UniversalWeather.CMS.API.Controllers
+{
+    /// <summary>
+    /// This controller exposes endpoints to access the products in the database
+    /// </summary>
+    public class CatalogController : ApiController
+    {
+        private readonly ICatalogService _catalogService;
+        private string newLocation = string.Empty;
+        /// <summary>
+        /// Set the product service
+        /// </summary>
+        /// <param name="service">The product interface</param>
+        public CatalogController(ICatalogService service)
+        {
+            _catalogService = service;
+        }
+
+        #region Product
+        /// <summary>
+        /// This gets the Product associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the Product</param>
+        /// <param name="fullyload">(Optional) Load all the related entities or not</param>
+        /// <returns>A product to retrieve</returns>
+        public async Task<IHttpActionResult> GetProduct(Guid id, bool fullyload = false)
+        {
+            var product = await _catalogService.GetProduct(id, fullyload);
+
+            if (product == null)
+                return this.RecordNotFound(string.Format("Product not found for id: {0}", id));
+
+            return Ok(product);
+        }
+
+        /// <summary>
+        /// This gets all the Products in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of products</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllProduct(bool fullyload = false)
+        {
+            var products = await _catalogService.GetAllProduct(fullyload);
+
+            if (products == null)
+                return this.RecordNotFound(string.Format("Products not found."));
+
+            return Ok(products);
+        }
+
+        /// <summary>
+        /// This saves a Product into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="product">The product to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveProduct([FromBody]Product product)
+        {
+            await _catalogService.AddProduct(product);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "GetProduct", id = product.ProductId });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", product.Name));
+        }
+
+        /// <summary>
+        /// This deletes a Product by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the product</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteProduct(Guid id)
+        {
+            if (await _catalogService.DeleteProduct(id) == 0)
+                return this.RecordNotFound(string.Format("Product not found for id: {0}", id));
+
+            return Ok("Product deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a product from a complete Product object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="product">The product to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateProduct([FromBody]Product product)
+        {
+            if (await _catalogService.UpdateProduct(product) == 0)
+                return this.RecordNotFound(string.Format("Product not found for id: {0}", product.ProductId));
+
+            return Ok("Product updated successfully.");
+        }
+
+        #region Product Comments
+
+        /// <summary>
+        /// This Add a Product Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="productComment"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveProductComment([FromBody]ProductComment productComment)
+        {
+            await _catalogService.SaveProductComment(productComment);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "GetAllProductComments", id = productComment.CommentID });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", productComment.CommentText));
+        }
+
+        /// <summary>
+        /// This updates a Product Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="productComment"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateProductComment([FromBody]ProductComment productComment)
+        {
+            if (await _catalogService.UpdateProductComment(productComment) == 0)
+                return this.RecordNotFound(string.Format("Product comment not found."));
+
+            return Ok("Product updated successfully.");
+        }
+
+        /// <summary>
+        /// This deletes a Product Comment using specified CommentID
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteProductComment(Guid commentId)
+        {
+            if (await _catalogService.DeleteProductComment(commentId) == 0)
+                return this.RecordNotFound(string.Format("ProductComment not found for id: {0}", commentId));
+
+            return Ok("Product deleted successfully.");
+        }
+
+        /// <summary>
+        /// This method returns all Comments for supplied ProductId
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <returns></returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllProductComments(Guid productId)
+        {
+            var productComments = await _catalogService.GetAllProductComments(productId);
+
+            if (productComments == null || productComments.Count() == 0)
+                return this.RecordNotFound(string.Format("Product comments not found."));
+
+            return Ok(productComments);
+        }
+
+        #endregion
+        #endregion
+
+        #region Department
+        /// <summary>
+        /// This gets the Department associated with the Guid parameters
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="fullyload">optional</param>
+        /// <returns></returns>
+        public async Task<IHttpActionResult> GetDepartment(Guid id, bool fullyload = false)
+        {
+            var department = await _catalogService.GetDepartment(id, fullyload);
+
+            if (department == null)
+                return this.RecordNotFound(string.Format("Department not found for id: {0}", id));
+
+            return Ok(department);
+        }
+
+        /// <summary>
+        /// This gets all the Department in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of departments</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllDepartment(bool fullyload = false)
+        {
+            var departments = await _catalogService.GetAllDepartment(fullyload);
+
+            if (departments == null || departments.Count() == 0)
+                return this.RecordNotFound(string.Format("Departments not found."));
+
+            return Ok(departments);
+        }
+
+        /// <summary>
+        /// This saves a Department into the database. The content-type request body supports json and xml
+        /// </summary>
+        /// <param name="department"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveDepartment([FromBody]Department department)
+        {
+            await _catalogService.AddDepartment(department);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "GetDepartment", id = department.DepartmentId });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", department.Name));
+        }
+
+        /// <summary>
+        /// This deletes a Department by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the Department</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteDepartment(Guid id)
+        {
+            if (await _catalogService.DeleteDepartment(id) == 0)
+                return this.RecordNotFound(string.Format("Department not found for id: {0}", id));
+
+            return Ok("Record deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a Department from a complete Department object. The content-type request body supports json and xml
+        /// </summary>
+        /// <param name="department"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateDepartment([FromBody]Department department)
+        {
+            if (await _catalogService.UpdateDepartment(department) == 0)
+                return this.RecordNotFound(string.Format("Department not found."));
+
+            return Ok("Department updated successfully.");
+        }
+
+        #region Department Comments
+
+        /// <summary>
+        /// This Add a Department Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="departmentComment"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveDepartmentComment([FromBody]DepartmentComment departmentComment)
+        {
+            await _catalogService.SaveDepartmentComment(departmentComment);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "GetAllDepartmentComments", id = departmentComment.CommentID });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", departmentComment.CommentText));
+        }
+
+        /// <summary>
+        /// This updates a Department Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="departmentComment"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateDepartmentComment([FromBody]DepartmentComment departmentComment)
+        {
+            if (await _catalogService.UpdateDepartmentComment(departmentComment) == 0)
+                return this.RecordNotFound(string.Format("DepartmentComment not found."));
+
+            return Ok("DepartmentComment updated successfully.");
+        }
+
+        /// <summary>
+        /// This deletes a Department Comment using specified CommentID
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteDepartmentComment(Guid commentId)
+        {
+            if (await _catalogService.DeleteDepartmentComment(commentId) == 0)
+                return this.RecordNotFound(string.Format("Department comment not found for id: {0}", commentId));
+
+            return Ok("Department comment deleted successfully.");
+        }
+
+        /// <summary>
+        /// This method returns all Comments for supplied DepartmentId
+        /// </summary>
+        /// <param name="departmentId"></param>
+        /// <returns></returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllDepartmentComments(Guid departmentId)
+        {
+            var allDepartmentComment = await _catalogService.GetAllDepartmentComments(departmentId);
+
+            if (allDepartmentComment == null || allDepartmentComment.Count() == 0)
+                return this.RecordNotFound(string.Format("Department comments not found for department id: {0}", departmentId));
+
+            return Ok(allDepartmentComment);
+        }
+
+        #endregion
+        #endregion
+
+        #region Manufacturer
+        /// <summary>
+        /// This gets the Manufacturer associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the Manufacturer</param>
+        /// <param name="fullyload">Fully Load all child nodes</param>
+        /// <returns>A Manufacturer to retrieve</returns>
+        public async Task<IHttpActionResult> GetManufacturer(Guid id, bool fullyload = false)
+        {
+            var manufacturer = await _catalogService.GetManufacturer(id, fullyload);
+
+            if (manufacturer == null)
+                return this.RecordNotFound(string.Format("Manufacturer not found for id: {0}", id));
+
+            return Ok(manufacturer);
+        }
+
+        /// <summary>
+        /// This gets all the Manufacturers in a list. This call supports OData conventions.
+        /// </summary>
+        /// <param name="fullyLoad">Optional, Set to true to load all manufacturers and its child nodes</param>
+        /// <param name="includeDeleted">Optional, set to true to include deleted manufacturers</param>
+        /// <returns>A list of manufacturers</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllManufacturer(bool fullyLoad = false, bool includeDeleted = false)
+        {
+            var allManufacturer = await _catalogService.GetAllManufacturer(fullyLoad, includeDeleted);
+
+            if (allManufacturer == null)
+                return this.RecordNotFound(string.Format("Manufacturer not found."));
+
+            return Ok(allManufacturer);
+        }
+
+        /// <summary>
+        /// This saves a Manufacturer into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="manufacturer">The Manufacturer to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveManufacturer([FromBody]Manufacturer manufacturer)
+        {
+            await _catalogService.AddManufacturer(manufacturer);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "GetManufacturer", id = manufacturer.ManufacturerId });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", manufacturer.Name));
+        }
+
+        /// <summary>
+        /// This deletes a Manufacturer by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the Manufacturer</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteManufacturer(Guid id)
+        {
+            if (await _catalogService.DeleteManufacturer(id) == 0)
+                return this.RecordNotFound(string.Format("Manufacturer not found for id: {0}", id));
+
+            return Ok("Manufacturer deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a Manufacturer from a complete Manufacturer object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="manufacturer">The Manufacturer to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateManufacturer([FromBody]Manufacturer manufacturer)
+        {
+            if (await _catalogService.UpdateManufacturer(manufacturer) == 0)
+                return this.RecordNotFound(string.Format("Manufacturer not found."));
+
+            return Ok("Manufacturer updated successfully.");
+        }
+
+        #endregion
+
+        #region Product Attribute
+        /// <summary>
+        /// This gets the ProductAttribute associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the ProductAttribute</param>
+        /// <returns>A productAttribute to retrieve</returns>
+        public async Task<IHttpActionResult> GetProductAttribute(Guid id)
+        {
+            var productAttribute = await _catalogService.GetProductAttribute(id);
+
+            if (productAttribute == null)
+                return this.RecordNotFound(string.Format("Product attribute not found for id: {0}", id));
+
+            return Ok(productAttribute);
+        }
+
+        /// <summary>
+        /// This gets all the ProductAttributes in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of productAttributes</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllProductAttribute()
+        {
+            var productAttributes = await _catalogService.GetAllProductAttribute();
+
+            if (productAttributes == null || productAttributes.Count() == 0)
+                return this.RecordNotFound(string.Format("Product attribute not found."));
+
+            return Ok(productAttributes);
+        }
+
+        /// <summary>
+        /// This saves a ProductAttribute into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="productAttribute">The productAttribute to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveProductAttribute([FromBody]ProductAttribute productAttribute)
+        {
+            await _catalogService.AddProductAttribute(productAttribute);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "GetProductAttribute", id = productAttribute.ProductAttributeId });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", productAttribute.Name));
+        }
+
+        /// <summary>
+        /// This deletes a ProductAttribute by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the productAttribute</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteProductAttribute(Guid id)
+        {
+            if (await _catalogService.DeleteProductAttribute(id) == 0)
+                return this.RecordNotFound(string.Format("Product attribute not found for id: {0}", id));
+
+            return Ok("Product attribute deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a productAttribute from a complete ProductAttribute object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="productAttribute">The productAttribute to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateProductAttribute([FromBody]ProductAttribute productAttribute)
+        {
+            if (await _catalogService.UpdateProductAttribute(productAttribute) == 0)
+                return this.RecordNotFound(string.Format("Product attribute not found."));
+
+            return Ok("Product attribute updated successfully.");
+        }
+
+        #endregion
+
+        #region Product Attribute Value
+
+        /// <summary>
+        /// This gets the ProductAttributeValue associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the ProductAttributeValue</param>
+        /// <param name="fullyload">optional</param>
+        /// <returns>A productAttributeValue to retrieve</returns>
+        public async Task<IHttpActionResult> GetProductAttributeValue(Guid id, bool fullyload)
+        {
+            var productAttributeValue = await _catalogService.GetProductAttributeValue(id, fullyload);
+
+            if (productAttributeValue == null)
+                return this.RecordNotFound(string.Format("Product attribute value not found for id: {0}", id));
+
+            return Ok(productAttributeValue);
+        }
+
+        /// <summary>
+        /// This gets all the ProductAttributeValues in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of productAttributeValues</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllProductAttributeValue()
+        {
+            var productAttributeValue = await _catalogService.GetAllProductAttributeValue();
+
+            if (productAttributeValue == null || productAttributeValue.Count() == 0)
+                return this.RecordNotFound(string.Format("Product attribute values not found."));
+
+            return Ok(productAttributeValue);
+        }
+
+        /// <summary>
+        /// This saves a ProductAttributeValue into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="productAttributeValue">The productAttributeValue to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveProductAttributeValue([FromBody]ProductAttributeValue productAttributeValue)
+        {
+            await _catalogService.AddProductAttributeValue(productAttributeValue);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "GetProductAttributeValue", id = productAttributeValue.ProductAttributeId });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", productAttributeValue.Name));
+        }
+
+        /// <summary>
+        /// This deletes a ProductAttributeValue by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the productAttributeValue</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteProductAttributeValue(Guid id)
+        {
+            if (await _catalogService.DeleteProductAttributeValue(id) == 0)
+                return this.RecordNotFound(string.Format("Product attribute value not found for id: {0}", id));
+
+            return Ok("Product attribute value deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a productAttributeValue from a complete ProductAttributeValue object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="productAttributeValue">The productAttributeValue to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateProductAttributeValue([FromBody]ProductAttributeValue productAttributeValue)
+        {
+            if (await _catalogService.UpdateProductAttributeValue(productAttributeValue) == 0)
+                return this.RecordNotFound(string.Format("Product attribute value not found."));
+
+            return Ok("Product attribute value updated successfully.");
+        }
+
+        #endregion
+
+        #region Product Template
+        /// <summary>
+        /// This gets the ProductTemplate associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the ProductTemplate</param>
+        /// <returns>A ProductTemplate to retrieve</returns>
+        public async Task<IHttpActionResult> GetProductTemplate(Guid id)
+        {
+            var productTemplate = await _catalogService.GetProductTemplate(id);
+
+            if (productTemplate == null)
+                return this.RecordNotFound(string.Format("Product template not found for id: {0}", id));
+
+            return Ok(productTemplate);
+        }
+
+        /// <summary>
+        /// This gets all the ProductTemplates in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of productTemplates</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllProductTemplate()
+        {
+            var productTemplateInstance = await _catalogService.GetAllProductTemplate();
+
+            if (productTemplateInstance == null || productTemplateInstance.Count() == 0)
+                return this.RecordNotFound(string.Format("Product template not found."));
+
+            return Ok(productTemplateInstance);
+        }
+
+        /// <summary>
+        /// This saves a ProductTemplate into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="productTemplate">The ProductTemplate to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveProductTemplate([FromBody]ProductTemplate productTemplate)
+        {
+            await _catalogService.AddProductTemplate(productTemplate);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "GetProductTemplate", id = productTemplate.ProductTemplateId });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", productTemplate.Name));
+        }
+
+        /// <summary>
+        /// This deletes a ProductTemplate by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the ProductTemplate</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteProductTemplate(Guid id)
+        {
+            if (await _catalogService.DeleteProductTemplate(id) == 0)
+                return this.RecordNotFound(string.Format("Product template not found for id: {0}", id));
+
+            return Ok("Product template deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a ProductTemplate from a complete ProductTemplate object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="productTemplate">The ProductTemplate to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateProductTemplate([FromBody]ProductTemplate productTemplate)
+        {
+            if (await _catalogService.UpdateProductTemplate(productTemplate) == 0)
+                return this.RecordNotFound(string.Format("Product template not found."));
+
+            return Ok("Product template updated successfully.");
+        }
+        #endregion
+
+        #region Product Variant
+
+        /// <summary>
+        /// This gets the ProductVariant associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the ProductVariant</param>
+        /// <param name="fullyload">(Optional) Load all the related product variants</param>
+        /// <returns>A ProductVariant to retrieve</returns>
+        public async Task<IHttpActionResult> GetProductVariant(Guid id, bool fullyload = false)
+        {
+            var productVariant = await _catalogService.GetProductVariant(id, fullyload);
+
+            if (productVariant == null)
+                return this.RecordNotFound(string.Format("Product variant not found for id: {0}", id));
+
+            return Ok(productVariant);
+        }
+
+        /// <summary>
+        /// This gets all the ProductVariant in a list. This call supports OData conventions.
+        /// </summary>
+        /// <param name="fullyload">(Optional) Load all the related product variants</param>
+        /// <returns>A list of productVariants</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllProductVariant(bool fullyload = false)
+        {
+            var productVariants = await _catalogService.GetAllProductVariant(fullyload);
+
+            if (productVariants == null || productVariants.Count() == 0)
+                return this.RecordNotFound(string.Format("Product variant not found."));
+
+            return Ok(productVariants);
+        }
+
+        /// <summary>
+        /// This saves a ProductVariant into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="productVariant">The ProductVariant to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveProductVariant([FromBody]ProductVariant productVariant)
+        {
+            await _catalogService.AddProductVariant(productVariant);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "DeleteProductVariant", id = productVariant.ProductVariantId });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", productVariant.Name));
+        }
+
+        /// <summary>
+        /// This deletes a ProductVariant by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the ProductVariant</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteProductVariant(Guid id)
+        {
+            if (await _catalogService.DeleteProductVariant(id) == 0)
+                return this.RecordNotFound(string.Format("Product variant not found for id: {0}", id));
+
+            return Ok("Product variant deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a ProductVariant from a complete Manufacturer object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="productVariant">The ProductVariant to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateProductVariant([FromBody]ProductVariant productVariant)
+        {
+            if (await _catalogService.UpdateProductVariant(productVariant) == 0)
+                return this.RecordNotFound(string.Format("Product variant not found."));
+
+            return Ok("Product variant updated successfully.");
+        }
+
+        #region ProductVariant Comments
+
+        /// <summary>
+        /// This Add a ProductVariant Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="productVariantComment"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveProductVariantComment([FromBody]ProductVariantComment productVariantComment)
+        {
+            await _catalogService.SaveProductVariantComment(productVariantComment);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "GetAllProductVariantComments", id = productVariantComment.CommentID });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", productVariantComment.CommentText));
+        }
+
+        /// <summary>
+        /// This updates a ProductVariant Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="productVariantComment"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateProductVariantComment([FromBody]ProductVariantComment productVariantComment)
+        {
+            if (await _catalogService.UpdateProductVariantComment(productVariantComment) == 0)
+                return this.RecordNotFound(string.Format("Product variant comment not found."));
+
+            return Ok("Product variant comment updated successfully.");
+        }
+
+        /// <summary>
+        /// This deletes a ProductVariant Comment using specified CommentID
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteProductVariantComment(Guid commentId)
+        {
+            if (await _catalogService.DeleteProductVariantComment(commentId) == 0)
+                return this.RecordNotFound(string.Format("Product variant comment not found for id: {0}", commentId));
+
+            return Ok("Product variant comment deleted successfully.");
+        }
+
+        /// <summary>
+        /// This method returns all Comments for supplied ProductVariantId
+        /// </summary>
+        /// <param name="productVariantId"></param>
+        /// <returns></returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllProductVariantComments(Guid productVariantId)
+        {
+            var AllProductVariantComments = await _catalogService.GetAllProductVariantComments(productVariantId);
+
+            if (AllProductVariantComments.Count() == 0)
+                return this.RecordNotFound(string.Format("Product Variant Comments not found for ProductVariantId: {0}", productVariantId));
+
+            return Ok(AllProductVariantComments);
+        }
+
+        #endregion
+        #endregion
+
+        #region Manufacturer Template
+        /// <summary>
+        /// This gets the ManufacturerTemplate associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the ManufacturerTemplate</param>
+        /// <returns>A ManufacturerTemplate to retrieve</returns>
+        public async Task<IHttpActionResult> GetManufacturerTemplate(Guid id)
+        {
+            var ManufacturerTemplate = await _catalogService.GetManufacturerTemplate(id);
+
+            if (ManufacturerTemplate == null)
+                return this.RecordNotFound(string.Format("Manufacturer template not found for id: {0}.", id));
+
+            return Ok(ManufacturerTemplate);
+        }
+
+        /// <summary>
+        /// This gets all the ManufacturerTemplates in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of ManufacturerTemplates</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllManufacturerTemplate()
+        {
+            var manufacturerTemplates = await _catalogService.GetAllManufacturerTemplate();
+
+            if (manufacturerTemplates == null || manufacturerTemplates.Count() == 0)
+                return this.RecordNotFound(string.Format("Manufacturer template not found."));
+
+            return Ok(manufacturerTemplates);
+        }
+
+        /// <summary>
+        /// This saves a ManufacturerTemplate into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="manufacturerTemplate">The ManufacturerTemplate to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveManufacturerTemplate([FromBody]ManufacturerTemplate manufacturerTemplate)
+        {
+            await _catalogService.AddManufacturerTemplate(manufacturerTemplate);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "GetManufacturerTemplate", id = manufacturerTemplate.ManufacturerTemplateId });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", manufacturerTemplate.Name));
+        }
+
+        /// <summary>
+        /// This deletes a ManufacturerTemplate by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the ManufacturerTemplate</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteManufacturerTemplate(Guid id)
+        {
+            if (await _catalogService.DeleteManufacturerTemplate(id) == 0)
+                return this.RecordNotFound(string.Format("Manufacturer template not found for id: {0}", id));
+
+            return Ok("Manufacturer template deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a ManufacturerTemplate from a complete ManufacturerTemplate object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="manufacturerTemplate">The manufacturerTemplate to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateManufacturerTemplate([FromBody]ManufacturerTemplate manufacturerTemplate)
+        {
+            if (await _catalogService.UpdateManufacturerTemplate(manufacturerTemplate) == 0)
+                return this.RecordNotFound(string.Format("Manufacturer template not found."));
+
+            return Ok("Manufacturer template updated successfully.");
+        }
+        #endregion
+
+        #region Department Template
+        /// <summary>
+        /// This gets the DepartmentTemplate associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the DepartmentTemplate</param>
+        /// <returns>A DepartmentTemplate to retrieve</returns>
+        public async Task<IHttpActionResult> GetDepartmentTemplate(Guid id)
+        {
+            var departmentTemplate = await _catalogService.GetDepartmentTemplate(id);
+
+            if (departmentTemplate == null)
+                return this.RecordNotFound(string.Format("Department template not found for id: {0}", id));
+
+            return Ok(departmentTemplate);
+        }
+
+        /// <summary>
+        /// This gets all the DepartmentTemplates in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of departmentTemplates</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllDepartmentTemplate()
+        {
+            var departmentTemplates = await _catalogService.GetAllDepartmentTemplate();
+
+            if (departmentTemplates == null || departmentTemplates.Count() == 0)
+                return this.RecordNotFound(string.Format("Department template not found."));
+
+            return Ok(departmentTemplates);
+        }
+
+        /// <summary>
+        /// This saves a DepartmentTemplate into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="departmentTemplate">The DepartmentTemplate to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveDepartmentTemplate([FromBody]DepartmentTemplate departmentTemplate)
+        {
+            await _catalogService.AddDepartmentTemplate(departmentTemplate);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Catalog", action = "GetDepartmentTemplate", id = departmentTemplate.DepartmentTemplateId });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", departmentTemplate.Name));
+        }
+
+        /// <summary>
+        /// This deletes a DepartmentTemplate by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the DepartmentTemplate</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteDepartmentTemplate(Guid id)
+        {
+            if (await _catalogService.DeleteDepartmentTemplate(id) == 0)
+                return this.RecordNotFound(string.Format("Department template not found for id: {0}", id));
+
+            return Ok("Department template deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a DepartmentTemplate from a complete DepartmentTemplate object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="departmentTemplate">The DepartmentTemplate to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateDepartmentTemplate([FromBody]DepartmentTemplate departmentTemplate)
+        {
+            if (await _catalogService.UpdateDepartmentTemplate(departmentTemplate) == 0)
+                return this.RecordNotFound(string.Format("Department template not found."));
+
+            return Ok("Department template updated successfully.");
+        }
+        #endregion
+    }
+}

@@ -1,0 +1,28 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Catalog;
+using UniversalWeather.CMS.API.Domain.Common;
+using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations;
+using System.Runtime.Serialization;
+
+namespace UniversalWeather.CMS.API.Domain.Picture
+{
+    /// <summary>
+    /// Represents a Picture
+    /// </summary>    
+    public class Picture : IEntity
+    {
+        public Guid PictureId { get; set; }
+        public string MimeType { get; set; }
+        public string SeName { get; set; }
+        public string PhotoURL { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool? IsPublished { get; set; }
+        public bool? IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+    }
+}

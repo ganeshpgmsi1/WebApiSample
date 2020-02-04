@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Common;
+
+namespace UniversalWeather.CMS.API.Domain.Contact
+{
+    public class ContactType : IEntity
+    {
+        public Guid ContactTypeId { get; set; }
+        public string Name { get; set; }
+        public string RegexValidator { get; set; }
+        public string UrlFormatString { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+    }
+}

@@ -1,0 +1,22 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity.ModelConfiguration;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Catalog;
+
+namespace UniversalWeather.CMS.API.Application.Mapping
+{
+    public class ProductCommentConfiguration : EntityTypeConfiguration<ProductComment>
+    {
+        public ProductCommentConfiguration()
+        {
+            ToTable("Product_Comment");
+            HasKey(k => k.CommentID);
+            HasRequired(b => b.Product)
+            .WithMany(i => i.Comments)
+            .HasForeignKey(b => b.ContainerID);
+        }
+    }
+}

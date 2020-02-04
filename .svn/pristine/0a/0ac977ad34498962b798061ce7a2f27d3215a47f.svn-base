@@ -1,0 +1,22 @@
+﻿using System;
+
+namespace UniversalWeather.CMS.API.Domain.Airport
+{
+    /// <summary>
+    /// Airport Picture
+    /// </summary>
+    public class AirportPicture
+    {
+        public Guid Airport_Picture_MappingId { get; set; }
+        public Guid AirportId { get; set; }
+        public Guid PictureId { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+        public virtual Picture.Picture Picture { get; set; }
+    }
+}
+
+

@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.BlogRollItem;
+
+namespace UniversalWeather.CMS.API.Domain.Services
+{
+    public interface IBlogRollItemService
+    {
+        Task<BlogRollItem.BlogRollItem> GetBlogRollItem(Guid id);
+        Task<int> DeleteBlogRollItem(Guid id);
+        Task<int> AddBlogRollItem(BlogRollItem.BlogRollItem blogRollItem);
+        Task<int> UpdateBlogRollItem(BlogRollItem.BlogRollItem blogRollItem);
+        Task<IQueryable<BlogRollItem.BlogRollItem>> GetAll();
+    }
+}

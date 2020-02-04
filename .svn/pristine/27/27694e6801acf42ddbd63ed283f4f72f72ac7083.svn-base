@@ -1,0 +1,106 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using UniversalWeather.CMS.API.Domain.Contact;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Infrastructure.Extensions;
+using UniversalWeather.CMS.API.Infrastructure.Attributes;
+using UniversalWeather.CMS.API.Infrastructure.Handlers;
+using UniversalWeather.CMS.API.Infrastructure;
+
+namespace UniversalWeather.CMS.API.Controllers
+{
+    /// <summary>
+    /// This controller exposes endpoints to access the contacts in the database
+    /// </summary>
+    public class ContactController : ApiController
+    {
+        private readonly IContactService _contactService;
+        private string newLocation = string.Empty;
+        /// <summary>
+        /// Set the contact service
+        /// </summary>
+        /// <param name="service">The contact interface</param>
+        public ContactController(IContactService service)
+        {
+            _contactService = service;
+        }
+
+        /// <summary>
+        /// This gets the Contact associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the Contact</param>
+        /// <param name="fullyload">Fully Load all child nodes</param>
+        /// <returns>A contact to retrieve</returns>
+        public async Task<IHttpActionResult> Get(Guid id, bool fullyload = false)
+        {
+            var contact = await _contactService.GetContact(id, fullyload);
+
+            if (contact == null)
+            {
+                return this.RecordNotFound(string.Format("Contact not found for id: {0}", id));
+            }
+
+            return Ok(contact);
+        }
+
+        /// <summary>
+        /// This gets all the Contacts in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of contacts</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAll(bool fullyload = false)
+        {
+            var contacts = await _contactService.GetAll(fullyload);
+
+            if (contacts == null || contacts.Count() == 0)
+                return this.RecordNotFound(string.Format("Contacts not found."));
+
+            return Ok(contacts);
+        }
+
+        /// <summary>
+        /// This saves a Contact into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="contact">The contact to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> Save([FromBody]Contact contact)
+        {
+            await _contactService.AddContact(contact);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Contact", action = "get", id = contact.ContactId });
+
+            return Created(newLocation, string.Format("{0} created.", contact.Name));
+        }
+
+        /// <summary>
+        /// This deletes a Contact by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the contact</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> Delete(Guid id)
+        {
+            if (await _contactService.DeleteContact(id) == 0)
+                return this.RecordNotFound(string.Format("Contact not found for id: {0}", id));
+
+            return Ok("Contact deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a contact from a complete Contact object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="contact">The contact to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> Update([FromBody]Contact contact)
+        {
+            if (await _contactService.UpdateContact(contact) == 0)
+                return this.RecordNotFound(string.Format("Contact not found."));
+
+            return Ok("Contact updated successfully.");
+        }
+    }
+}

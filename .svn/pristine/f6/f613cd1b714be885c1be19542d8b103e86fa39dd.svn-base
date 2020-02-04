@@ -1,0 +1,13 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Picture;
+
+namespace UniversalWeather.CMS.API.Domain.Repository
+{
+    public interface IPictureRepository : IRepository<Picture.Picture>
+    {
+
+    }
+}

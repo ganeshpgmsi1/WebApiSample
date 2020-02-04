@@ -1,0 +1,23 @@
+﻿using System;
+using UniversalWeather.CMS.API.Domain.Common;
+using Newtonsoft.Json;
+
+namespace UniversalWeather.CMS.API.Domain.Survey
+{
+    /// <summary>
+    /// A QuestionOption object.
+    /// </summary>
+    public class QuestionOption : IEntity
+    {
+        public System.Guid QuestionOptionId { get; set; }
+        public System.Guid QuestionId { get; set; }
+        public string Content { get; set; }
+        public string Description { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public System.DateTime DateCreated { get; set; }
+        public System.DateTime DateModified { get; set; }
+        [JsonIgnore]
+        public Question Question { get; private set; }
+    }
+}

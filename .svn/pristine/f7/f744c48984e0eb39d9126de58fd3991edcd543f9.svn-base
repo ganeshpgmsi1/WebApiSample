@@ -1,0 +1,78 @@
+﻿using Elmah;
+using System.Data.Entity.Validation;
+using System.Diagnostics;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Web.Http;
+using System.Web.Http.Filters;
+
+namespace UniversalWeather.CMS.API.Infrastructure.Attributes
+{
+    /// <summary>
+    /// Globally handle exceptions
+    /// </summary>
+    public class ExceptionHandler : ExceptionFilterAttribute
+    {
+        /// <summary>
+        /// Handle all exceptions
+        /// </summary>
+        /// <param name="context">Current request/response context</param>
+        public override void OnException(HttpActionExecutedContext context)
+        {
+            if (context.Exception == null)
+                return;
+
+            //Log with elmah
+            ErrorSignal.FromCurrentContext().Raise(context.Exception);
+
+            Debug.WriteLine(context.Exception.Message);
+
+            string strErrorMessage = "Unknown error";
+
+            if (context.Exception.GetType().Name == "DbEntityValidationException")
+            {
+                DbEntityValidationException dbEx = (DbEntityValidationException)context.Exception;
+
+                foreach (var validationErrors in dbEx.EntityValidationErrors)
+                {
+                    foreach (var validationError in validationErrors.ValidationErrors)
+                    {
+                        if (strErrorMessage == "Unknown error")
+                            strErrorMessage = validationError.ErrorMessage;
+                        else
+                            strErrorMessage = strErrorMessage + ", " + validationError.ErrorMessage;
+
+                    }
+                }
+            }
+
+            //Extend to check for different types of exceptions
+            var response = new HttpResponseMessage(HttpStatusCode.InternalServerError)
+            {
+                Content = ErrorResponse(strErrorMessage, "application/json"),
+                ReasonPhrase = "Server Error"
+            };
+
+
+            //var response = new HttpResponseMessage(HttpStatusCode.InternalServerError)
+            //{
+            //    Content = ErrorResponse("Unknown error", "application/json"),
+            //    ReasonPhrase = "Server Error"
+            //};
+
+            throw new HttpResponseException(response);          
+        }
+
+        /// <summary>
+        /// Creates the json/xml error response message
+        /// </summary>
+        /// <param name="mediaType">Media type to return</param>
+        /// <param name="message">Error response</param>
+        /// <returns></returns>
+        private static StringContent ErrorResponse(string message, string mediaType)
+        {
+            return new StringContent(message, Encoding.UTF8, mediaType);
+        }
+    }
+}

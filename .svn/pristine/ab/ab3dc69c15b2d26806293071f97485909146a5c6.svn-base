@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Post;
+using System.Linq.Expressions;
+
+namespace UniversalWeather.CMS.API.Domain.Repository
+{
+    public interface IPostRepository : IRepository<Post.Post>
+    {
+        Task<Post.Post> GetFullPost(Guid id, Guid blogId);
+        Task<IEnumerable<Post.Post>> GetAllFullyLoaded(Guid? blogId);
+        Task<IEnumerable<Post.Comment>> GetPostComments(Guid id, Guid? blogId);
+        Task<IEnumerable<Category>> GetCategories(Guid? blogId);
+    }
+}

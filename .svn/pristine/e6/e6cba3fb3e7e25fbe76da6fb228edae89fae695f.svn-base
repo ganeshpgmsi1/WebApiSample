@@ -1,0 +1,30 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Common;
+using Newtonsoft.Json;
+
+namespace UniversalWeather.CMS.API.Domain.Contact
+{
+    public class Contact : IEntity
+    {
+        public Guid ContactId { get; set; }
+        public string Name { get; set; }
+        public string Address { get; set; }
+        public Guid ContactTypeId { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+        public Guid DefaultPictureId { get; set; }
+        public virtual ContactType ContactType { get; private set; }
+        [JsonIgnore]
+        public virtual ICollection<Person.Person> Persons { get; private set; }
+        [JsonIgnore]
+        public virtual ICollection<Location.Location> Locations { get; private set; }
+        [JsonIgnore]
+        public virtual ICollection<Airport.Airport> Airports { get; private set; }
+    }
+}

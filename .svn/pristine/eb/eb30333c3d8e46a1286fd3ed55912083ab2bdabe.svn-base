@@ -1,0 +1,40 @@
+﻿using System;
+using UniversalWeather.CMS.API.Domain.Common;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using System.Xml.Serialization;
+
+namespace UniversalWeather.CMS.API.Domain.Survey
+{
+    /// <summary>
+    /// A Survey object.
+    /// </summary>
+    public class Survey : IEntity
+    {
+        public System.Guid SurveyId { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string MetaKeywords { get; set; }
+        public string MetaDescription { get; set; }
+        public string MetaTitle { get; set; }
+        public string SeName { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public System.DateTime DateCreated { get; set; }
+        public System.DateTime DateModified { get; set; }
+        public string XsltContent { get; set; }
+                
+        [XmlIgnore]
+        public ICollection<Question> Questions { get; set; }
+
+        [XmlIgnore]
+        public ICollection<Answer> Answers { get; set; }
+
+        [XmlIgnore]
+        public ICollection<Tag.Tag> Tags { get; set; }
+
+        [XmlIgnore]
+        public ICollection<SurveyComment> Comments { get; set; }
+    }
+}

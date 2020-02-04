@@ -1,0 +1,89 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Text;
+using Newtonsoft.Json;
+using System.Xml.Serialization;
+using System.Runtime.Serialization;
+
+namespace UniversalWeather.CMS.API.Domain.Tag
+{
+    /// <summary>
+    /// Represents a tag
+    /// </summary>
+    public class Tag : IComparable<Tag>, IEqualityComparer<Tag>
+    {
+        public Guid TagId { get; set; }
+        public string Title { get; set; }
+        public string MetaTitle { get; set; }
+        public string SeName { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+        [JsonIgnore]
+        [XmlIgnore]
+        public List<Post.Post> Posts { get;  set; }
+        [JsonIgnore]
+        [XmlIgnore]
+        public List<Page.Page> Pages { get; set; }
+        [JsonIgnore]
+        [XmlIgnore]
+        public List<Catalog.Product> Products { get;  set; }
+        [JsonIgnore]
+        [XmlIgnore]
+        public List<Entity.Entity> Entities { get; private set; }
+        [JsonIgnore]
+        [XmlIgnore]
+        public List<Catalog.Department> Departments { get; private set; }
+        [JsonIgnore]
+        [XmlIgnore]
+        public List<Catalog.ProductVariant> ProductVariants { get; private set; }
+        [JsonIgnore]
+        [XmlIgnore]
+        public List<Person.Person> Persons { get; private set; }
+        [JsonIgnore]
+        [XmlIgnore]
+        public List<Location.Location> Locations { get; private set; }
+        [JsonIgnore]
+        [XmlIgnore]
+        public List<Airport.Airport> Airports { get; private set; }
+        [JsonIgnore]
+        [XmlIgnore]
+        public List<Survey.Survey> Surveys { get; private set; }
+        [NotMapped]
+        public int TotalCount { get; set; }
+
+        #region Implemented interfaces
+        public int GetHashCode(Tag other)
+        {
+            if (other.TagId.Equals(TagId))
+            {
+                return 0;
+            }
+            return -1;
+        }
+
+        public int CompareTo(Tag other)
+        {
+            if (other.TagId.Equals(TagId))
+            {
+                return 0;
+            }
+            return -1;
+        }
+
+        public bool Equals(Tag x, Tag y)
+        {
+            if (x.TagId.Equals(y.TagId))
+            {
+                return true;
+            }
+            return false;
+        }
+        #endregion
+    }
+}

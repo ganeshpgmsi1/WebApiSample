@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Comment;
+using Newtonsoft.Json;
+using System.Xml.Serialization;
+
+namespace UniversalWeather.CMS.API.Domain.Page
+{
+    public class PageComment :BaseComment
+    {
+        [XmlIgnore]
+        [JsonIgnore]
+        public Page Page { get; set; }
+    }
+}

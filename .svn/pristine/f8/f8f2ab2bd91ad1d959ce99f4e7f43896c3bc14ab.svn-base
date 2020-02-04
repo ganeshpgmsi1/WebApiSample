@@ -1,0 +1,50 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Contact;
+using UniversalWeather.CMS.API.Data.Repository;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Data.Configuration;
+using UniversalWeather.CMS.API.Utilities.Extensions;
+using UniversalWeather.CMS.API.Domain.Post;
+using System.Data.Entity;
+
+namespace UniversalWeather.CMS.API.Data.Repository
+{
+    public class ContactRepository : BaseRepository<Contact>, IContactRepository
+    {
+        /// <summary>
+        /// Contact Repository Ctor
+        /// </summary>
+        /// <param name="dataContexts"></param>
+        public ContactRepository(DomainNameDbContext dataContexts)
+            : base(dataContexts)
+        {
+        }
+
+        /// <summary>
+        /// Get Full Contact
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Contact> GetFullContact(Guid id)
+        {
+            var contact = await (_dbContext.Contacts.Where(w => w.ContactId == id)
+                .Include(p => p.ContactType)).FirstOrDefaultAsync();
+            return contact;
+        }
+
+        /// <summary>
+        /// Get Fully Loaded Contacts
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Contact>> GetAllFullyLoaded()
+        {
+            var contact = _dbContext.Contacts
+                .Include(p => p.ContactType);
+            return (await contact.ToListAsync()).AsQueryable();
+        }
+    }
+}

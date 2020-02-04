@@ -1,0 +1,212 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using UniversalWeather.CMS.API.Domain.Comment;
+using UniversalWeather.CMS.API.Domain.Page;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Infrastructure.Extensions;
+using UniversalWeather.CMS.API.Infrastructure.Attributes;
+using UniversalWeather.CMS.API.Infrastructure.Handlers;
+using UniversalWeather.CMS.API.Infrastructure;
+using System.Net.Http.Headers;
+
+namespace UniversalWeather.CMS.API.Controllers
+{
+    /// <summary>
+    /// This controller exposes endpoints to access the pages in the database
+    /// </summary>
+    public class PageController : ApiController
+    {
+        private readonly IPageService _pageService;
+        private string newLocation = string.Empty;
+        /// <summary>
+        /// Set the page service
+        /// </summary>
+        /// <param name="service">The page interface</param>
+        public PageController(IPageService service)
+        {
+            _pageService = service;
+        }
+
+        /// <summary>
+        /// This gets the Page associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the Page</param>
+        /// <param name="blogId">The unique identifier of the blog</param>
+        /// <param name="fullyload">Fully Load all child properties</param>
+        /// <returns>A page to retrieve</returns>
+        public async Task<IHttpActionResult> Get(Guid id, Guid blogId, bool fullyload = false)
+        {
+
+            var page = await _pageService.GetPage(id, blogId, fullyload);
+
+            if (page == null)
+            {
+                return this.RecordNotFound(string.Format("Page not found for id: {0}", id));
+            }
+
+            return Ok(page);
+        }
+
+        /// <summary>
+        /// This gets all the Pages in a list. This call supports OData conventions.
+        /// </summary>
+        /// <param name="blogId">The unique identifier of the blog</param>
+        /// <param name="fullyload">Fully Load all child properties</param>
+        /// <returns>A list of pages</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAll(Guid? blogId = null, bool fullyload = false)
+        {
+            var pages = await _pageService.GetAll(blogId, fullyload);
+
+            if (pages == null || pages.Count() == 0)
+                return this.RecordNotFound(string.Format("Pages not found."));
+
+            return Ok(pages);
+        }
+
+        /// <summary>
+        /// This gets the page breadcrumb string.
+        /// </summary>
+        /// <param name="id">The unique identifier of the blog</param>
+        /// <param name="blogId">The unique identifier of the blog</param>
+        /// <returns>A list of pages</returns>
+        [Queryable]
+
+        public async Task<IHttpActionResult> GetPageBreadCrumb(Guid id, Guid blogId)
+        {
+            return Ok(await _pageService.GetPageBreadCrumb(id, blogId));
+        }
+
+        //}
+
+        /// <summary>
+        /// Returns all the pages based on whether they are published or not.
+        /// This call supports OData conventions. 
+        /// </summary>
+        /// <param name="published">True or False</param>
+        /// <param name="fullyload">Fully Load all child properties</param>
+        /// <returns>A list of pages</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllByPublishState(bool published = true, bool fullyload = false)
+        {
+            var publishState = await _pageService.GetAllPublished(published, fullyload);
+
+            if (publishState == null || publishState.Count() == 0)
+                return this.RecordNotFound(string.Format("Publish State not found."));
+
+            return Ok(publishState);
+        }
+
+        /// <summary>
+        /// This saves a Page into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="page">The page to save</param> 
+        [HttpPost]
+        public async Task<IHttpActionResult> Save([FromBody]Page page)
+        {
+            //Page with same pageId(GuidId) exist
+            if (await _pageService.AddPage(page) == 0)
+                return Ok("Already Exist: Page Id=" + page.PageId);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Page", action = "get", id = page.PageId });
+
+            return Created(newLocation, string.Format("{0} created.", page.Title));
+        }
+
+        /// <summary>
+        /// This deletes a Page by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the page</param>
+        /// <param name="blogId">The unique identifier of the blog</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> Delete(Guid id, Guid blogId)
+        {
+            if (await _pageService.DeletePage(id, blogId) == 0)
+                return this.RecordNotFound(string.Format("Page not found for id: {0}", id));
+
+            return Ok("Page deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a page from a complete Page object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="page">The page to update</param>
+        /// <param name="pageId">The unique identifier of the blog</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> Update([FromBody]Page page)
+        {
+            if (await _pageService.UpdatePage(page) == 0)
+                return this.RecordNotFound(string.Format("Page not found."));
+
+            return Ok("Page updated successfully.");
+        }
+
+        #region Comments
+
+        /// <summary>
+        /// This Add a Page Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="pageComment"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveComment([FromBody]PageComment pageComment)
+        {
+            if (await _pageService.SaveComment(pageComment) == 0)
+                return Ok("Already Exist: Page comment Id=" + pageComment.CommentID);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Page", action = "GetAllComments", id = pageComment.CommentID });
+            return Created(newLocation, string.Format("{0} created.", pageComment.CommentText));
+        }
+
+        /// <summary>
+        /// This updates a Page Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="pageComment"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateComment([FromBody]PageComment pageComment)
+        {
+            if (await _pageService.UpdateComment(pageComment) == 0)
+                return this.RecordNotFound(string.Format("Comment not found."));
+
+            return Ok("Comment updated successfully.");
+        }
+
+        /// <summary>
+        /// This deletes a Page Comment using specified CommentID
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteComment(Guid commentId)
+        {
+            if (await _pageService.DeleteComment(commentId) == 0)
+                return this.RecordNotFound(string.Format("Comment not found for id: {0}", commentId));
+
+            return Ok("Comment deleted successfully.");
+        }
+
+        /// <summary>
+        /// This method returns all Comments for supplied PageId
+        /// </summary>
+        /// <param name="pageId"></param>
+        /// <returns></returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllComments(Guid pageId)
+        {
+            var comments = await _pageService.GetAllComments(pageId);
+
+            if (comments == null || comments.Count() == 0)
+                return this.RecordNotFound(string.Format("Comments not found."));
+
+            return Ok(comments);
+        }
+
+        #endregion
+    }
+}

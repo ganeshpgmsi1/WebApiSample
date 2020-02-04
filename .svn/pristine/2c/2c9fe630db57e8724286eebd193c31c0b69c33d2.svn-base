@@ -1,0 +1,618 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Configuration;
+using System.Net.Mail;
+using System.Web.Http;
+using System.Net;
+using System.Net.Http;
+using System.Xml;
+using System.IO;
+using System.Xml.Linq;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Infrastructure.Extensions;
+using UniversalWeather.CMS.API.Infrastructure.Attributes;
+using UniversalWeather.CMS.API.Infrastructure.Handlers;
+using UniversalWeather.CMS.API.Infrastructure;
+using UniversalWeather.CMS.API.Utilities.Survey;
+using UniversalWeather.CMS.API.Utilities.Security;
+using UniversalWeather.CMS.API.RequestModels;
+using UniversalWeather.CMS.API.Domain.Survey;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Domain;
+
+namespace UniversalWeather.CMS.API.Controllers
+{
+    /// <summary>
+    /// Survey Controller
+    /// </summary>
+    public class SurveyController : ApiController
+    {
+        /// <summary>
+        /// The SurveyService for interacting with the repository
+        /// </summary>
+        private readonly ISurveyService _surveyService;
+        private string newLocation = string.Empty;
+
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="service"></param>
+        public SurveyController(ISurveyService service)
+        {
+            _surveyService = service;
+        }
+
+        # region Survey
+
+        /// <summary>
+        /// This saves a survey into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="survey">The survey to save</param>
+        /// <returns></returns>
+        public async Task<IHttpActionResult> Save([FromBody]Survey survey)
+        {
+            //Survey with same surveyId(GuidId) exist
+            if (await _surveyService.SaveSurvey(survey) == 0)
+                return Ok("Already Exist: Survey Id=" + survey.SurveyId);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Survey", action = "get", id = survey.SurveyId });
+
+            return Created(newLocation, string.Format("{0} created.", survey.Name));
+
+        }
+
+        /// <summary>
+        /// This update a survey into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="survey">The  survey to update</param>
+        /// <returns></returns>
+        /// 
+        [HttpPut]
+        public async Task<IHttpActionResult> Update([FromBody]Survey survey)
+        {
+            if (await _surveyService.UpdateSurvey(survey) == 0)
+                return this.RecordNotFound(string.Format("Survey not found for id: {0}", survey.SurveyId));
+
+            return Ok("Survey updated successfully.");
+        }
+
+        /// <summary>
+        /// This delete a survey into the database.
+        /// </summary>
+        /// <param name="surveyId">The survey to delete</param>
+        /// <returns></returns>
+        /// 
+        [HttpDelete]
+        public async Task<IHttpActionResult> Delete(Guid surveyId)
+        {
+            if (await _surveyService.DeleteSurvey(surveyId) == 0)
+                return this.RecordNotFound(string.Format("Survey not found for id: {0}", surveyId));
+
+            return Ok("Survey deleted successfully.");
+        }
+
+        /// <summary>
+        /// Get Survey by providing SurveyId
+        /// </summary>
+        /// <param name="surveyId">Survey Id</param>
+        /// <param name="fullyload">Fully load all children relationships</param>
+        /// <param name="excludeDeleted">Set to true to exclude deleted surveys(Default is false)</param>
+        /// <returns></returns>
+        [HttpGet]
+        public async Task<IHttpActionResult> GetSurvey(Guid surveyId, bool fullyload = false, bool excludeDeleted = true)
+        {
+            var survey = await _surveyService.GetSurvey(surveyId, fullyload, excludeDeleted);
+
+            if (survey == null)
+                return this.RecordNotFound(string.Format("Survey not found for id: {0}", surveyId));
+
+            return Ok(survey);
+        }
+
+        ///// <summary>
+        ///// Get Survey by Prodividing Id (SurveyNo)
+        ///// </summary>
+        ///// <param name="id"></param>
+        ///// <returns></returns>
+        //public async Task<IHttpActionResult> GetSurveyBySurveyNo(Guid id)
+        //{
+        //    var survey = await _surveyService.GetSurveyBySurveyNo(id);
+
+        //    if (survey == null)
+        //        return this.RecordNotFound(string.Format("Survey not found for id: {0}", id));
+
+        //    return Ok(survey);
+        //}
+
+        /// <summary>
+        /// Send Survey Email Notification
+        /// </summary>
+        /// <param name="requestModel"></param>
+        [HttpPost]
+        public string SendSurveyEmailNotification([FromBody]EmailRequestModel requestModel)
+        {
+            string subject = "Survey Taken";
+            string fromEmailId = requestModel.fromEmail;
+            bool isCustomer = requestModel.isCustomer;
+            string emailBody = requestModel.emailBody;
+            string endUserEmailId = requestModel.endUserEmailId;
+            List<string> ccEmailAddresses = requestModel.ccEmailAddresses;
+            List<string> bccEmailAddresses = requestModel.bccEmailAddresses;
+
+            try
+            {
+                using (MailMessage mailMessage = new MailMessage())
+                {
+                    mailMessage.From = new MailAddress(fromEmailId);
+                    mailMessage.Subject = string.Format(subject);
+                    mailMessage.Body += emailBody;
+                    mailMessage.To.Add(endUserEmailId);
+
+                    if (!isCustomer)
+                    {
+                        mailMessage.To.Clear();
+
+                        mailMessage.ReplyToList.Add(requestModel.replyToEmail);
+
+                        #region CC Recepients
+
+                        foreach (string ccEmailAddress in ccEmailAddresses)
+                        {
+                            mailMessage.To.Add(ccEmailAddress);
+                        }
+
+                        #endregion
+
+                        #region BCC Recipients
+
+                        foreach (string bccEmailAddress in bccEmailAddresses)
+                        {
+                            mailMessage.Bcc.Add(bccEmailAddress);
+                        }
+
+                        #endregion
+                    }
+
+                    if (mailMessage.To.Count > 0)
+                    {
+                        return _surveyService.SendMailMessage(mailMessage);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return "Email sent successfully.";
+        }
+
+        /// <summary>
+        /// This gets all Surveys. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of Surveys</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllSurveys(bool fullyload = false, bool excludeDeleted = true)
+        {
+            var surveys = await _surveyService.GetAllSurveys(fullyload, excludeDeleted);
+
+            if (surveys.Count() == 0)
+                return this.RecordNotFound(string.Format("Survey not found."));
+
+            return Ok(surveys);
+        }
+
+        #endregion
+
+        #region Answer
+
+        /// <summary>
+        /// This gets the Answer associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the answer</param>
+        /// <returns>A answer to retrieve</returns>
+        public async Task<IHttpActionResult> GetAnswer(Guid id)
+        {
+            var answer = await _surveyService.GetAnswer(id);
+
+            if (answer == null)
+                return this.RecordNotFound(string.Format("Answer not found for id: {0}", id));
+
+            return Ok(answer);
+        }
+
+        /// <summary>
+        /// This gets all the Answers in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of answers</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllAnswers()
+        {
+            var answers = await _surveyService.GetAllAnswer();
+
+            if (answers == null)
+                return this.RecordNotFound(string.Format("Answer not found."));
+
+            return Ok(answers);
+        }
+
+        /// <summary>
+        /// This saves a Answer into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="answerModel">The answer to save(made up of string[] questionid, string[] answer, string surveid, string emailid, string referrer)</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveAnswer([FromBody]AnswerRequestModel answerModel)
+        {
+            var headers = String.Empty;
+
+            XmlDocument xdAnswer = await CreateXml(answerModel.questionid, answerModel.answer, answerModel.surveyId, answerModel.emailid);
+            Answer objAnswer = null;
+            try
+            {
+                foreach (var key in HttpContext.Current.Request.Headers.AllKeys)
+                    headers += key + "=" + HttpContext.Current.Request.Headers[key] + Environment.NewLine;
+
+                objAnswer = new Answer()
+                {
+                    AnswerId = Guid.NewGuid(),
+                    SurveyId = answerModel.surveyId,
+                    DateCreated = DateTime.Now,
+                    DateModified = DateTime.Now,
+                    IsPublished = true,
+                    EMail = answerModel.emailid ?? string.Empty,
+                    UserName = "test",
+                    HeaderData = headers,
+                    Referrer = answerModel.referrer,
+                    IsDeleted = false,
+                    AnswerXML = xdAnswer.DocumentElement.OuterXml
+                };
+                await _surveyService.AddAnswer(objAnswer);
+            }
+            catch (Exception ex)
+            {
+                throw new HttpResponseException(Request.CreateResponse(HttpStatusCode.BadRequest, ex.Message));
+            }
+
+            Survey survey = await _surveyService.GetSurvey(answerModel.surveyId, true, true).ConfigureAwait(false);
+            string customerEmailContent = "" ;
+            string adminEmailContent="";
+            //if (survey != null)
+            //{
+            //    customerEmailContent = SurveyUtils.TransformXsltToCustomerContent(xdAnswer, survey.XsltContent);
+            //    adminEmailContent = SurveyUtils.TransformXsltToAdminContent(xdAnswer, survey.XsltContent, headers, answerModel.referrer);
+            //}
+
+            SimpleAES decryptor = new SimpleAES();
+            string contactrequestreceiver = decryptor.DecryptString(answerModel.contactrequestreceiver.Trim());
+            string bcccontactrequestreceiver = decryptor.DecryptString(answerModel.bcccontactrequestreceiver.Trim());
+            var arrCRR = contactrequestreceiver.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            if (arrCRR == null)
+            {
+                arrCRR = new string[] { };
+            }
+            var arrBCCCRR = bcccontactrequestreceiver.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+            if (arrBCCCRR == null)
+            {
+                arrBCCCRR = new string[] { };
+            }
+
+            var objRes = new EmailRequestModel()
+            {
+                fromEmail = answerModel.fromEmail,
+                replyToEmail = answerModel.replyToEmail,
+                endUserEmailId = answerModel.emailid,
+                bccEmailAddresses = arrCRR.ToList(),
+                ccEmailAddresses = arrBCCCRR.ToList()
+            };
+
+            objRes.isCustomer = true;
+            objRes.emailBody = customerEmailContent;
+            // SendSurveyEmailNotification(objRes);
+            objRes.isCustomer = false;
+            objRes.emailBody = adminEmailContent;
+
+            //SendSurveyEmailNotification(objRes);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Survey", action = "GetSurvey", id = objAnswer.SurveyId });
+
+            return Created(newLocation, string.Format("{0} created.","Answer"));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="questionid"></param>
+        /// <param name="answer"></param>
+        /// <param name="surveyId"></param>
+        /// <param name="emailAddress"></param>
+        /// <returns></returns>
+        private async Task<XmlDocument> CreateXml(Guid[] questionid, string[] answer, Guid surveyId, string emailAddress)
+        {
+            int iAnswerCount = answer.Count();
+            var sSettings = new XmlWriterSettings { Indent = false };
+            XmlDocument answerXML = new XmlDocument();
+            var oMemoryStream = new MemoryStream();
+
+            using (var xwAnswer = XmlWriter.Create(oMemoryStream, sSettings))
+            {
+                xwAnswer.WriteStartDocument(true);
+                xwAnswer.WriteStartElement("Answers");
+                xwAnswer.WriteAttributeString("SurveyID", surveyId.ToString());
+                xwAnswer.WriteAttributeString("EmailAddress", emailAddress);
+
+                for (int i = 0; i < iAnswerCount; i++)
+                {
+                    if (questionid[i] == null)
+                    {
+                        continue;
+                    }
+                    xwAnswer.WriteStartElement("Answer");
+                    var answervalue = Convert.ToString(answer[i]) ?? string.Empty;
+                    xwAnswer.WriteStartElement("Question");
+                    var question = await _surveyService.GetQuestion(questionid[i]);
+                    if (question == null)
+                    {
+                        question = new Question() { Title = string.Empty };
+                    }
+                    xwAnswer.WriteValue(question.Title);
+                    xwAnswer.WriteEndElement();
+                    xwAnswer.WriteStartElement("QuestionAnswer");
+                    xwAnswer.WriteValue(answervalue);
+                    xwAnswer.WriteEndElement();
+                    xwAnswer.WriteEndElement();
+                }
+
+                xwAnswer.WriteEndElement();
+                xwAnswer.WriteEndDocument();
+            }
+
+            oMemoryStream.Position = 0;
+            answerXML.Load(oMemoryStream);
+
+            return answerXML;
+        }
+
+        /// <summary>
+        /// This deletes a Answer by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the Answer</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteAnswer(Guid id)
+        {
+            if (await _surveyService.DeleteAnswer(id) == 0)
+                return this.RecordNotFound(string.Format("Answer not found for id: {0}", id));
+
+            return Ok("Answer deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a Answer from a complete Answer object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="answer">The Answer to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateAnswer([FromBody]Answer answer)
+        {
+            if (await _surveyService.UpdateAnswer(answer) == 0)
+                return this.RecordNotFound(string.Format("Answer not found for id: {0}", answer.AnswerId));
+
+            return Ok("Answer updated successfully.");
+        }
+
+        #endregion
+
+        #region Question
+
+        /// <summary>
+        /// This gets the Question associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the Question</param>
+        /// <returns>A Question to retrieve</returns>
+        public async Task<IHttpActionResult> GetQuestion(Guid id)
+        {
+            var Question = await _surveyService.GetQuestion(id);
+
+            if (Question == null)
+                return this.RecordNotFound(string.Format("Question not found for id: {0}", id));
+
+            return Ok(Question);
+        }
+
+        /// <summary>
+        /// This gets all the questions in a list. This call supports OData conventions.
+        /// </summary>
+        /// <param name="fullyLoad">Set to true to eager load question options</param>
+        /// <param name="excludeDeleted">Set to true to exclude deleted questions</param>
+        /// <param name="surveyId">surveyId</param>
+        /// <returns>A list of Questions</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllQuestions(Guid? surveyId = null, bool fullyLoad = false, bool excludeDeleted = false)
+        {
+            var questions = await _surveyService.GetAllQuestion(surveyId, fullyLoad, excludeDeleted);
+
+            if (questions.Count() == 0)
+                return this.RecordNotFound(string.Format("Question not found."));
+
+            return Ok(questions);
+        }
+
+        /// <summary>
+        /// This saves a Question into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="question">The question to save</param>
+        public async Task<IHttpActionResult> SaveQuestion([FromBody]Question question)
+        {
+
+            await _surveyService.AddQuestion(question);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "survey", action = "GetAllQuestions" });
+            return Created(newLocation, "Question saved successfully!");
+        }
+
+        /// <summary>
+        /// This deletes a Question by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the Question</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteQuestion(Guid id)
+        {
+            if (await _surveyService.DeleteQuestion(id) == 0)
+                return this.RecordNotFound(string.Format("Question not found for id: {0}", id));
+
+            return Ok("Question deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a Question from a complete Question object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="Question">The Question to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateQuestion([FromBody]Question Question)
+        {
+            if (await _surveyService.UpdateQuestion(Question) == 0)
+                return this.RecordNotFound(string.Format("Question not found for id: {0}", Question.QuestionId));
+
+            return Ok("Question updated successfully.");
+        }
+
+        #endregion
+
+        #region QuestionOption
+
+        /// <summary>
+        /// This gets the QuestionOption associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the QuestionOption</param>
+        /// <returns>A QuestionOption to retrieve</returns>
+        public async Task<IHttpActionResult> GetQuestionOption(Guid id)
+        {
+            var QuestionOption = await _surveyService.GetQuestionOption(id);
+
+            if (QuestionOption == null)
+                return this.RecordNotFound(string.Format("Question option not found for id: {0}", id));
+
+            return Ok(QuestionOption);
+        }
+
+        /// <summary>
+        /// This gets all the questionOptions in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of questionOptions</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllQuestionOption()
+        {
+            var allQuestionOptions = await _surveyService.GetAllQuestionOption();
+
+            if (allQuestionOptions == null || allQuestionOptions.Count() == 0)
+                return this.RecordNotFound(string.Format("Question not found."));
+
+            return Ok(allQuestionOptions);
+        }
+
+        /// <summary>
+        /// This saves a questionOption into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="questionOption">The questionOption to save</param>
+        public async Task<IHttpActionResult> SaveQuestionOption([FromBody]QuestionOption questionOption)
+        {
+            await _surveyService.AddQuestionOption(questionOption);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "survey", action = "GetQuestionOption" });
+
+            return Created(newLocation, "Question option saved successfully!");
+        }
+
+        /// <summary>
+        /// This deletes a QuestionOption by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the QuestionOption</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteQuestionOption(Guid id)
+        {
+            if (await _surveyService.DeleteQuestionOption(id) == 0)
+                return this.RecordNotFound(string.Format("Question option not found for id: {0}", id));
+
+            return Ok("Question option deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a QuestionOption from a complete QuestionOption object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="questionOption">The QuestionOption to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateQuestionOption([FromBody]QuestionOption questionOption)
+        {
+            if (await _surveyService.UpdateQuestionOption(questionOption) == 0)
+                return this.RecordNotFound(string.Format("Question option not found for id: {0}", questionOption.QuestionId));
+
+            return Ok("Question option updated successfully.");
+        }
+
+        #endregion
+
+        #region Survey Comments
+
+        /// <summary>
+        /// This Add a Survey Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="surveyComment"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveComment([FromBody]SurveyComment surveyComment)
+        {
+            if (await _surveyService.SaveComment(surveyComment) == 0)
+                return Ok("Already Exist: Comment Id=" + surveyComment.CommentID);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Survey", action = "GetAllComments", id = surveyComment.SurveyId });
+            return Created(newLocation, "Comment saved successfully!");
+        }
+
+        /// <summary>
+        /// This updates a Survey Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="surveyComment"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateComment([FromBody]SurveyComment surveyComment)
+        {
+            if (await _surveyService.UpdateComment(surveyComment) == 0)
+                return this.RecordNotFound(string.Format("Comment not found for id: {0}", surveyComment.CommentID));
+
+            return Ok("Comment updated successfully.");
+        }
+
+        /// <summary>
+        /// This deletes a Survey Comment using specified CommentID
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteComment(Guid commentId)
+        {
+            if (await _surveyService.DeleteComment(commentId) == 0)
+                return this.RecordNotFound(string.Format("Comment not found for '" + commentId + "'."));
+
+            return Ok("Comment deleted successfully.");
+        }
+
+        /// <summary>
+        /// This method returns all Comments for supplied SyrveyId
+        /// </summary>
+        /// <param name="surveyId"></param>
+        /// <returns></returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllComments(Guid surveyId)
+        {
+            var allComments = await _surveyService.GetAllComments(surveyId);
+
+            if (allComments == null || allComments.Count() == 0)
+                return this.RecordNotFound(string.Format("Comments not found."));
+
+            return Ok(allComments);
+        }
+
+        #endregion
+    }
+}

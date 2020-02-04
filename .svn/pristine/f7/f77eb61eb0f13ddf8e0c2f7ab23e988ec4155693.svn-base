@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Comment;
+using Newtonsoft.Json;
+
+namespace UniversalWeather.CMS.API.Domain.Catalog
+{
+    public class ProductComment : BaseComment
+    {
+        [JsonIgnore]
+        public Product Product { get; private set; }
+    }
+}

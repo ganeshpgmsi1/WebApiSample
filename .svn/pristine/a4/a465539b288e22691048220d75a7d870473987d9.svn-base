@@ -1,0 +1,22 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Entity;
+
+namespace UniversalWeather.CMS.API.Domain.Repository
+{
+    public interface IEntityRepository : IRepository<Entity.Entity>
+    {
+        Task<Entity.Entity> GetFullEntity(Guid id);
+        Task<IQueryable<Entity.Entity>> GetAllFullyLoaded();
+
+        #region Comments
+        Task<int> SaveComment(EntityComment entityComment);
+        Task<int> UpdateComment(EntityComment entityComment);
+        Task<int> DeleteComment(Guid commentId);
+        Task<IEnumerable<EntityComment>> GetAllComments(Guid entityId);
+        #endregion
+    }
+}

@@ -1,0 +1,62 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Newtonsoft.Json.Linq;
+using System.Net.Mail;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Survey;
+
+namespace UniversalWeather.CMS.API.Domain.Repository
+{
+    public interface ISurveyRepository : IRepository<Survey.Survey>
+    {
+        Task<int> SaveSurvey(Survey.Survey survey);
+        Task<Survey.Survey> GetSurveyFullyLoadedExcludeDeleted(Guid surveyId);
+        Task<Survey.Survey> GetSurveyFullyLoaded(Guid surveyId);
+        Task<Survey.Survey> GetSurvey(Guid surveyId);
+        Task<Survey.Survey> GetSurveyExcludeDeleted(Guid surveyId);
+        Task<Survey.Survey> GetSurveyBySurveyNo(Guid id);
+        Task<IQueryable<Survey.Survey>> GetAllSurveysFullyLoadedExcludeDeleted();
+        Task<IQueryable<Survey.Survey>> GetAllSurveysFullyLoaded();
+        Task<IQueryable<Survey.Survey>> GetAllSurveys();
+        Task<IQueryable<Survey.Survey>> GetAllSurveysExcludeDeleted();
+        string SendMailMessage(MailMessage mailMessage);
+
+        Task<Answer> GetAnswer(Guid id);
+        Task<Answer> GetAnswer(Answer answer);
+        //Task<bool> DeleteAnswer(Guid id);
+        Task<int> AddAnswer(Answer answer);
+        Task<int> UpdateAnswer(Answer answer);
+        Task<int> DeleteAnswer(Guid id);
+        Task<IQueryable<Answer>> GetAllAnswer();
+
+        Task<Question> GetQuestion(Guid id);
+        Task<Question> GetQuestion(Question question);
+        Task<int> DeleteQuestion(Guid id);
+        Task<int> AddQuestion(Question question);
+        Task<int> UpdateQuestion(Question question);
+        Task<IQueryable<Question>> GetAllQuestion();
+        Task<IQueryable<Question>> GetAllQuestionsFullyLoadedIncludeDeleted();
+        Task<IQueryable<Question>> GetAllQuestionsFullyLoadedExcludeDeleted();
+        Task<IQueryable<Question>> GetAllQuestionExcludeDeleted();
+        Task<IQueryable<Question>> GetAllQuestionIncludeDeleted(Guid? surveyId);
+        Task<IQueryable<Question>> GetAllQuestionsFullyLoadedIncludeDeleted(Guid? surveyId);
+        Task<IQueryable<Question>> GetAllQuestionsFullyLoadedExcludeDeleted(Guid? surveyId);
+        Task<IQueryable<Question>> GetAllQuestionsExcludeDeleted(Guid? surveyId);
+        
+        Task<QuestionOption> GetQuestionOption(Guid id);
+        Task<QuestionOption> GetQuestionOption(QuestionOption questionOption);
+        Task<int> DeleteQuestionOption(Guid id);
+        Task<int> AddQuestionOption(QuestionOption questionOption);
+        Task<int> UpdateQuestionOption(QuestionOption questionOption);
+        Task<IQueryable<QuestionOption>> GetAllQuestionOption();
+
+        #region Comments
+        Task<int> SaveComment(SurveyComment surveyComment);
+        Task<int> UpdateComment(SurveyComment surveyComment);
+        Task<int> DeleteComment(Guid commentId);
+        Task<IEnumerable<SurveyComment>> GetAllComments(Guid surveyId);
+        #endregion
+    }
+}

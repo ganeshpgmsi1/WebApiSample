@@ -1,0 +1,713 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Domain.Catalog;
+using UniversalWeather.CMS.API.Utilities.Extensions;
+using UniversalWeather.CMS.API.Application.Exceptions;
+using UniversalWeather.CMS.API.Application.Common;
+using System.Threading.Tasks;
+using System.Linq.Expressions;
+
+namespace UniversalWeather.CMS.API.Application.Service
+{
+    public class CatalogService : BaseService, ICatalogService
+    {
+        private readonly ICatalogRepository _catalogRepository;
+
+        public CatalogService(ICatalogRepository repository)
+        {
+            _catalogRepository = repository;
+        }
+
+        #region Product
+
+        /// <summary>
+        /// Gets a Product
+        /// </summary>
+        /// <param name="id">Id of Product to get</param>
+        /// <param name="fullyload">Fully loads all child properties</param>
+        /// <returns></returns>
+        public async Task<Product> GetProduct(Guid id, bool fullyload)
+        {
+            if (fullyload)
+                return await _catalogRepository.GetFullyLoadedProduct(id);
+            else
+                return await _catalogRepository.GetProduct(id);
+        }
+
+
+        /// <summary>
+        /// Saves a product to the database
+        /// </summary>
+        /// <param name="product">A product to save</param>
+        public async Task<int> AddProduct(Product product)
+        {
+            return await _catalogRepository.AddProduct(product);
+        }
+
+        /// <summary>
+        /// Deletes a product via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the Product</param>p
+        public async Task<int> DeleteProduct(Guid id)
+        {
+            return await _catalogRepository.DeleteProduct(id);
+        }
+
+        /// <summary>
+        /// Gets all the products in the table
+        /// </summary>
+        /// <param name="fullyload"></param>
+        /// <returns>A list of product</returns>             
+        public async Task<IQueryable<Product>> GetAllProduct(bool fullyload)
+        {
+            if (fullyload)
+                return await _catalogRepository.GetAllFullyLoadedProduct();
+            else
+                return await _catalogRepository.GetAllProduct();
+        }
+
+        /// <summary>
+        /// Updates a product
+        /// </summary>
+        /// <param name="product">The product to update</param>
+        public async Task<int> UpdateProduct(Product product)
+        {
+            return await _catalogRepository.UpdateProduct(product);
+        }
+
+        #region Product Comments
+
+        /// <summary>
+        /// Saves comment
+        /// </summary>
+        /// <param name="productComment"></param>
+        /// <returns></returns>
+        public async Task<int> SaveProductComment(ProductComment productComment)
+        {
+            return await _catalogRepository.SaveProductComment(productComment);
+        }
+
+        /// <summary>
+        /// Updates comment
+        /// </summary>
+        /// <param name="productComment"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateProductComment(ProductComment productComment)
+        {
+            return await _catalogRepository.UpdateProductComment(productComment);
+        }
+
+        /// <summary>
+        /// Deletes comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteProductComment(Guid commentId)
+        {
+            return await _catalogRepository.DeleteProductComment(commentId);
+        }
+
+        /// <summary>
+        /// GetAll the comments
+        /// </summary>
+        /// <param name="productId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<ProductComment>> GetAllProductComments(Guid productId)
+        {
+            return await _catalogRepository.GetAllProductComments(productId);
+        }
+
+        #endregion
+        #endregion
+
+        #region Department
+
+        /// <summary>
+        /// Get a department
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="fullyload"></param>
+        /// <returns></returns>
+        public async Task<Department> GetDepartment(Guid id, bool fullyload)
+        {
+            if (fullyload)
+                return await _catalogRepository.GetFullDepartment(id);
+            else
+                return await _catalogRepository.GetDepartment(id);
+        }
+
+        /// <summary>
+        /// Saves a department to the database
+        /// </summary>
+        /// <param name="department">A department to save</param>
+        public async Task<int> AddDepartment(Department department)
+        {
+            return await _catalogRepository.AddDepartment(department);
+        }
+
+        /// <summary>
+        /// Deletes a department via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the Department</param>p
+        public async Task<int> DeleteDepartment(Guid id)
+        {
+            return await _catalogRepository.DeleteDepartment(id);
+
+        }
+
+        /// <summary>
+        /// Gets all the department in the table
+        /// </summary>
+        /// <returns>A list of department</returns>
+        public async Task<IQueryable<Department>> GetAllDepartment(bool fullyload)
+        {
+            if (!fullyload)
+                return await _catalogRepository.GetAllDepartment();
+            else
+                return await _catalogRepository.GetAllDepartmentFullyLoaded();
+        }
+
+        /// <summary>
+        /// Updates a department
+        /// </summary>
+        /// <param name="department">The department to update</param>
+        public async Task<int> UpdateDepartment(Department department)
+        {
+            return await _catalogRepository.UpdateDepartment(department);
+
+        }
+
+        #region Department Comments
+
+        /// <summary>
+        /// Saves comment
+        /// </summary>
+        /// <param name="departmentComment"></param>
+        /// <returns></returns>
+        public async Task<int> SaveDepartmentComment(DepartmentComment departmentComment)
+        {
+            return await _catalogRepository.SaveDepartmentComment(departmentComment);
+        }
+
+        /// <summary>
+        /// Updates comment
+        /// </summary>
+        /// <param name="departmentComment"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateDepartmentComment(DepartmentComment departmentComment)
+        {
+            return await _catalogRepository.UpdateDepartmentComment(departmentComment);
+        }
+
+        /// <summary>
+        /// Deletes comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteDepartmentComment(Guid commentId)
+        {
+            return await _catalogRepository.DeleteDepartmentComment(commentId);
+        }
+
+        /// <summary>
+        /// GetAll the comment
+        /// </summary>
+        /// <param name="departmentId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<DepartmentComment>> GetAllDepartmentComments(Guid departmentId)
+        {
+            return await _catalogRepository.GetAllDepartmentComments(departmentId);
+        }
+
+        #endregion
+        #endregion
+
+        #region Manufacturer
+
+        /// <summary>
+        /// Gets a Manufacturer
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Manufacturer> GetManufacturer(Guid id)
+        {
+            return await _catalogRepository.GetManufacturer(id);
+        }
+
+        /// <summary>
+        /// Gets a manufacturer via a complete object
+        /// </summary>
+        /// <param name="manufacturer">The manufacturer object to get</param>
+        /// <returns>A manufacturer</returns>
+        public async Task<Manufacturer> GetManufacturer(Manufacturer manufacturer)
+        {
+            return await _catalogRepository.GetManufacturer(manufacturer);
+        }
+
+        /// <summary>
+        /// Gets a Manufacturer
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="fullyload"></param>
+        /// <returns></returns>
+        public async Task<Manufacturer> GetManufacturer(Guid id, bool fullyload)
+        {
+            if (fullyload)
+                return await _catalogRepository.GetFullManufacturer(id);
+            else
+                return await _catalogRepository.GetManufacturer(id);
+        }
+
+        /// <summary>
+        /// Saves a manufacturer to the database
+        /// </summary>
+        /// <param name="manufacturer">A manufacturer to save</param>
+        public async Task<int> AddManufacturer(Manufacturer manufacturer)
+        {
+            return await _catalogRepository.AddManufacturer(manufacturer);
+        }
+
+        /// <summary>
+        /// Deletes a manufacturer via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the Manufacturer</param>p
+        public async Task<int> DeleteManufacturer(Guid id)
+        {
+            return await _catalogRepository.DeleteManufacturer(id);
+        }
+
+        /// <summary>
+        /// Gets all the manufacturer in the table
+        /// </summary>
+        /// <returns>A list of manufacturer</returns>
+        public async Task<IQueryable<Manufacturer>> GetAllManufacturer(bool fullyLoad, bool includeDeleted)
+        {
+            IQueryable<Manufacturer> manufacturers = null;
+            if (!fullyLoad)
+            {
+                if (!includeDeleted)
+                {
+                    manufacturers = await _catalogRepository.GetAllManufacturerExcludingDeleted();
+                }
+                else
+                {
+                    manufacturers = await _catalogRepository.GetAllManufacturerIncludingDeleted();
+                }
+            }
+            else
+            {
+                if (!includeDeleted)
+                {
+                    manufacturers = await _catalogRepository.GetAllManufacturerWithChildExcludingDeleted();
+                }
+                else
+                {
+                    manufacturers = await _catalogRepository.GetAllManufacturerWithChildIncludingDeleted();
+                }
+            }
+            return manufacturers.AsQueryable();
+        }
+
+        /// <summary>
+        /// Updates a manufacturer
+        /// </summary>
+        /// <param name="manufacturer">The manufacturer to update</param>
+        public async Task<int> UpdateManufacturer(Manufacturer manufacturer)
+        {
+            return await _catalogRepository.UpdateManufacturer(manufacturer);
+        }
+        #endregion
+
+        #region Product Attribute
+        /// <summary>
+        /// Get a product attribute
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ProductAttribute> GetProductAttribute(Guid id)
+        {
+            return await _catalogRepository.GetProductAttribute(id);
+        }
+
+        /// <summary>
+        /// Gets a productAttribute via a complete object
+        /// </summary>
+        /// <param name="productAttribute">The product object to get</param>
+        /// <returns>A productAttribute</returns>
+        public async Task<ProductAttribute> GetProductAttribute(ProductAttribute productAttribute)
+        {
+            return await _catalogRepository.GetProductAttribute(productAttribute);
+        }
+
+        /// <summary>
+        /// Saves a productAttribute to the database
+        /// </summary>
+        /// <param name="productAttribute">A productAttribute to save</param>
+        public async Task<int> AddProductAttribute(ProductAttribute productAttribute)
+        {
+            return await _catalogRepository.AddProductAttribute(productAttribute);
+        }
+
+        /// <summary>
+        /// Deletes a productAttribute via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the ProductAttribute</param>p
+        public async Task<int> DeleteProductAttribute(Guid id)
+        {
+            return await _catalogRepository.Delete(id);
+        }
+
+        /// <summary>
+        /// Gets all the productAttribute in the table
+        /// </summary>
+        /// <returns>A list of productAttribute</returns>
+        public async Task<IQueryable<ProductAttribute>> GetAllProductAttribute()
+        {
+            return await _catalogRepository.GetAllProductAttribute();
+        }
+
+        /// <summary>
+        /// Updates a productAttribute
+        /// </summary>
+        /// <param name="productAttribute">The productAttribute to update</param>
+        public async Task<int> UpdateProductAttribute(ProductAttribute productAttribute)
+        {
+            return await _catalogRepository.UpdateProductAttribute(productAttribute);
+        }
+
+        #endregion
+
+        #region Product Attribute Value
+
+        /// <summary>
+        /// Get product attribute value
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="fullyload"></param>
+        /// <returns></returns>
+        public async Task<ProductAttributeValue> GetProductAttributeValue(Guid id, bool fullyload)
+        {
+            if (fullyload)
+                return await _catalogRepository.GetFullProductAttributeValue(id);
+            else
+                return await _catalogRepository.GetProductAttributeValue(id);
+        }
+
+        /// <summary>
+        /// Saves a productAttributeValue to the database
+        /// </summary>
+        /// <param name="productAttributeValue">A productAttributeValue to save</param>
+        public async Task<int> AddProductAttributeValue(ProductAttributeValue productAttributeValue)
+        {
+            return await _catalogRepository.AddProductAttributeValue(productAttributeValue);
+        }
+
+        /// <summary>
+        /// Deletes a productAttributeValue via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the ProductAttributeValue</param>p
+        public async Task<int> DeleteProductAttributeValue(Guid id)
+        {
+            return await _catalogRepository.DeleteProductAttributeValue(id);
+        }
+
+        /// <summary>
+        /// Gets all the productAttributeValue in the table
+        /// </summary>
+        /// <returns>A list of productAttributeValue</returns>
+        public async Task<IQueryable<ProductAttributeValue>> GetAllProductAttributeValue()
+        {
+            return await _catalogRepository.GetAllProductAttributeValue();
+        }
+
+        /// <summary>
+        /// Updates a productAttributeValue
+        /// </summary>
+        /// <param name="productAttributeValue">The productAttributeValue to update</param>
+        public async Task<int> UpdateProductAttributeValue(ProductAttributeValue productAttributeValue)
+        {
+            return await _catalogRepository.UpdateProductAttributeValue(productAttributeValue);
+        }
+        #endregion
+
+        #region Product Template
+
+        /// <summary>
+        /// Get product template
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ProductTemplate> GetProductTemplate(Guid id)
+        {
+            return await _catalogRepository.GetProductTemplate(id);
+        }
+
+        /// <summary>
+        /// Gets a productTemplate via a complete object
+        /// </summary>
+        /// <param name="productTemplate">The productTemplate object to get</param>
+        /// <returns>A productTemplate</returns>
+        public async Task<ProductTemplate> GetProductTemplate(ProductTemplate productTemplate)
+        {
+            return await _catalogRepository.GetProductTemplate(productTemplate);
+        }
+
+        /// <summary>
+        /// Saves a productTemplate to the database
+        /// </summary>
+        /// <param name="productTemplate">A productTemplate to save</param>
+        public async Task<int> AddProductTemplate(ProductTemplate productTemplate)
+        {
+            return await _catalogRepository.AddProductTemplate(productTemplate);
+        }
+
+        /// <summary>
+        /// Deletes a productTemplate via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the ProductTemplate</param>p
+        public async Task<int> DeleteProductTemplate(Guid id)
+        {
+            return await _catalogRepository.DeleteProductTemplate(id);
+        }
+
+        /// <summary>
+        /// Gets all the productTemplate in the table
+        /// </summary>
+        /// <returns>A list of productTemplate</returns>
+        public async Task<IQueryable<ProductTemplate>> GetAllProductTemplate()
+        {
+            return await _catalogRepository.GetAllProductTemplate();
+        }
+
+        /// <summary>
+        /// Updates a ProductTemplate
+        /// </summary>
+        /// <param name="productTemplate">The productTemplate to update</param>
+        public async Task<int> UpdateProductTemplate(ProductTemplate productTemplate)
+        {
+            return await _catalogRepository.UpdateProductTemplate(productTemplate);
+        }
+        #endregion
+
+        #region Product Variant
+
+        /// <summary>
+        /// Get product variant
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ProductVariant> GetProductVariant(Guid id, bool fullyload)
+        {
+            if (!fullyload)
+                return await _catalogRepository.GetProductVariant(id);
+            else
+                return await _catalogRepository.GetProductVariantFullyLoaded(id);
+        }
+
+        /// <summary>
+        /// Saves a productVariant to the database
+        /// </summary>
+        /// <param name="productVariant">A productVariant to save</param>
+        public async Task<int> AddProductVariant(ProductVariant productVariant)
+        {
+            return await _catalogRepository.AddProductVariant(productVariant);
+        }
+
+        /// <summary>
+        /// Deletes a productVariant via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the ProductVariant</param>p
+        public async Task<int> DeleteProductVariant(Guid id)
+        {
+            return await _catalogRepository.DeleteProductVariant(id);
+        }
+
+        /// <summary>
+        /// Gets all the productVariant in the table
+        /// </summary>
+        /// <returns>A list of productVariant</returns>
+        public async Task<IQueryable<ProductVariant>> GetAllProductVariant(bool fullyload)
+        {
+            if (!fullyload)
+                return await _catalogRepository.GetAllProductVariant();
+            else
+                return await _catalogRepository.GetAllProductVariantFullyLoaded();
+        }
+
+        /// <summary>
+        /// Updates a productVariant
+        /// </summary>
+        /// <param name="productVariant">The productVariant to update</param>
+        public async Task<int> UpdateProductVariant(ProductVariant productVariant)
+        {
+            return await _catalogRepository.UpdateProductVariant(productVariant);
+        }
+
+        #region ProductVariant Comments
+
+        /// <summary>
+        /// Save comment
+        /// </summary>
+        /// <param name="productVariantComment"></param>
+        /// <returns></returns>
+        public async Task<int> SaveProductVariantComment(ProductVariantComment productVariantComment)
+        {
+            return await _catalogRepository.SaveProductVariantComment(productVariantComment);
+        }
+
+        /// <summary>
+        /// Update comment
+        /// </summary>
+        /// <param name="productVariantComment"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateProductVariantComment(ProductVariantComment productVariantComment)
+        {
+            return await _catalogRepository.UpdateProductVariantComment(productVariantComment);
+        }
+
+        /// <summary>
+        /// Delete comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteProductVariantComment(Guid commentId)
+        {
+            return await _catalogRepository.DeleteProductVariantComment(commentId);
+        }
+
+        /// <summary>
+        /// GetAll comments
+        /// </summary>
+        /// <param name="productVariantId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<ProductVariantComment>> GetAllProductVariantComments(Guid productVariantId)
+        {
+            return await _catalogRepository.GetAllProductVariantComments(productVariantId);
+        }
+
+        #endregion
+        #endregion
+
+        #region Department Template
+        /// <summary>
+        /// Get department template
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<DepartmentTemplate> GetDepartmentTemplate(Guid id)
+        {
+            return await _catalogRepository.GetDepartmentTemplate(id);
+        }
+
+        /// <summary>
+        /// Gets a departmentTemplate via a complete object
+        /// </summary>
+        /// <param name="departmentTemplate">The departmentTemplate object to get</param>
+        /// <returns>A departmentTemplate</returns>
+        public async Task<DepartmentTemplate> GetDepartmentTemplate(DepartmentTemplate departmentTemplate)
+        {
+            return await _catalogRepository.GetDepartmentTemplate(departmentTemplate);
+        }
+
+        /// <summary>
+        /// Saves a departmentTemplate to the database
+        /// </summary>
+        /// <param name="departmentTemplate">A departmentTemplate to save</param>
+        public async Task<int> AddDepartmentTemplate(DepartmentTemplate departmentTemplate)
+        {
+            return await _catalogRepository.AddDepartmentTemplate(departmentTemplate);
+        }
+
+        /// <summary>
+        /// Deletes a departmentTemplate via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the DepartmentTemplate</param>p
+        public async Task<int> DeleteDepartmentTemplate(Guid id)
+        {
+            return await _catalogRepository.DeleteDepartmentTemplate(id);
+        }
+
+        /// <summary>
+        /// Gets all the departmentTemplate in the table
+        /// </summary>
+        /// <returns>A list of departmentTemplate</returns>
+        public async Task<IQueryable<DepartmentTemplate>> GetAllDepartmentTemplate()
+        {
+            return await _catalogRepository.GetAllDepartmentTemplate();
+        }
+
+        /// <summary>
+        /// Updates a DepartmentTemplate
+        /// </summary>
+        /// <param name="departmentTemplate">The departmentTemplate to update</param>
+        public async Task<int> UpdateDepartmentTemplate(DepartmentTemplate departmentTemplate)
+        {
+            return await _catalogRepository.UpdateDepartmentTemplate(departmentTemplate);
+        }
+
+        #endregion
+
+        #region Manufacturer Template
+
+        /// <summary>
+        /// Get manufacturer template
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ManufacturerTemplate> GetManufacturerTemplate(Guid id)
+        {
+            return await _catalogRepository.GetManufacturerTemplate(id);
+        }
+
+        /// <summary>
+        /// Gets a manufacturerTemplate via a complete object
+        /// </summary>
+        /// <param name="manufacturerTemplate">The manufacturerTemplate object to get</param>
+        /// <returns>A manufacturerTemplate</returns>
+        public async Task<ManufacturerTemplate> GetManufacturerTemplate(ManufacturerTemplate manufacturerTemplate)
+        {
+            return await _catalogRepository.GetManufacturerTemplate(manufacturerTemplate);
+        }
+
+        /// <summary>
+        /// Saves a manufacturerTemplate to the database
+        /// </summary>
+        /// <param name="manufacturerTemplate">A manufacturerTemplate to save</param>
+        public async Task<int> AddManufacturerTemplate(ManufacturerTemplate manufacturerTemplate)
+        {
+            return await _catalogRepository.AddManufacturerTemplate(manufacturerTemplate);
+        }
+
+        /// <summary>
+        /// Deletes a manufacturerTemplate via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the ManufacturerTemplate</param>p
+        public async Task<int> DeleteManufacturerTemplate(Guid id)
+        {
+            return await _catalogRepository.DeleteManufacturerTemplate(id);
+        }
+
+        /// <summary>
+        /// Gets all the manufacturerTemplate in the table
+        /// </summary>
+        /// <returns>A list of manufacturerTemplate</returns>
+        public async Task<IQueryable<ManufacturerTemplate>> GetAllManufacturerTemplate()
+        {
+            return await _catalogRepository.GetAllManufacturerTemplate();
+        }
+
+        /// <summary>
+        /// Updates a ManufacturerTemplate
+        /// </summary>
+        /// <param name="manufacturerTemplate">The manufacturerTemplate to update</param>
+        public async Task<int> UpdateManufacturerTemplate(ManufacturerTemplate manufacturerTemplate)
+        {
+            return await _catalogRepository.UpdateManufacturerTemplate(manufacturerTemplate);
+        }
+        #endregion
+    }
+}

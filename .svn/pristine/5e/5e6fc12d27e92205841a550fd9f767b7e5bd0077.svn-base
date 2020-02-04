@@ -1,0 +1,31 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Survey;
+
+namespace UniversalWeather.CMS.API.Data.Mapping
+{
+    public class SurveyConfiguration : EntityTypeConfiguration<Survey>
+    {
+        /// <summary>
+        /// Set mapping values on initialization
+        /// </summary>
+        public SurveyConfiguration()
+        {
+            ToTable("Survey");
+            HasKey(p => p.SurveyId);
+            HasMany(m => m.Answers);
+            HasMany(m => m.Questions);
+            HasMany(p => p.Tags)
+                 .WithMany(t => t.Surveys)
+                 .Map(mc =>
+                 {
+                     mc.ToTable("Survey_Tag");
+                     mc.MapLeftKey("SurveyId");
+                     mc.MapRightKey("TagId");
+                 });
+        }
+    }
+}

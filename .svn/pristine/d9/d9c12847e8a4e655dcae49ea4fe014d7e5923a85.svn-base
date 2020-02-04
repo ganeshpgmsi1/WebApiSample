@@ -1,0 +1,100 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Data.Configuration;
+using UniversalWeather.CMS.API.Data.Repository;
+using UniversalWeather.CMS.API.Domain.Person;
+using UniversalWeather.CMS.API.Domain.Repository;
+
+namespace UniversalWeather.CMS.API.Data.Repository
+{
+    public class PersonRepository : BaseRepository<Person>, IPersonRepository
+    {
+         /// <summary>
+        /// Person Repository
+        /// </summary>
+        /// <param name="dataContexts"></param>
+        public PersonRepository(DomainNameDbContext dataContexts)
+            : base(dataContexts)
+        {
+        }
+
+        /// <summary>
+        /// Get Full Person
+        /// </summary>
+        /// <param name="id">Id of person to load</param>
+        /// <returns>A Person</returns>
+        public async Task<Person> GetFullPerson(Guid id)
+        {
+            var person = await (_dbContext.Persons.Where(w => w.PersonId == id)
+                .Include(p => p.PersonPictures)
+                .Include(x => x.Tags)
+                .Include(x => x.Contacts)
+                .Include(x => x.Comments)
+                .Include("Contacts.ContactType")).FirstOrDefaultAsync();
+            return person;
+        }
+
+        /// <summary>
+        /// Get Full Person
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<IQueryable<Person>> GetAllFullyLoaded()
+        {
+            return (await _dbContext.Persons
+                .Include(p => p.PersonPictures)
+                .Include(x => x.Tags)
+                .Include(x => x.Contacts)
+                .Include(x => x.Comments)
+                .Include("Contacts.ContactType").ToListAsync()).AsQueryable();
+        }
+
+        #region Comments
+        /// <summary>
+        /// Add Person Comment
+        /// </summary>
+        /// <param name="personComment"></param>
+        public async Task<int> SaveComment(PersonComment personComment)
+        {
+            _dbContext.PersonComments.Add(personComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Update Person Comment
+        /// </summary>
+        /// <param name="personComment"></param>
+        public async Task<int> UpdateComment(PersonComment personComment)
+        {
+            _dbContext.Entry(personComment).State = EntityState.Modified;
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Delete Person Comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        public async Task<int> DeleteComment(Guid commentId)
+        {
+            var objToDelete = _dbContext.PersonComments.Find(commentId);
+            _dbContext.PersonComments.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Get All Person Comments
+        /// </summary>
+        /// <param name="personId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<PersonComment>> GetAllComments(Guid personId)
+        {
+            return (await _dbContext.PersonComments
+               .Where(x => x.ContainerID == personId).ToListAsync()).AsEnumerable();
+        }
+
+        #endregion
+    }
+}

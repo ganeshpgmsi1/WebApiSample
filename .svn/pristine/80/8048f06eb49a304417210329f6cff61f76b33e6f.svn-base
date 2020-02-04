@@ -1,0 +1,102 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Data.Configuration;
+using UniversalWeather.CMS.API.Data.Repository;
+using UniversalWeather.CMS.API.Domain.Entity;
+using UniversalWeather.CMS.API.Domain.Repository;
+
+namespace UniversalWeather.CMS.API.Data.Repository
+{
+    /// <summary>
+    /// Entity Repository
+    /// </summary>
+    public class EntityRepository : BaseRepository<Entity>, IEntityRepository
+    {
+        /// <summary>
+        /// Get the dbcontext from the baserepository
+        /// </summary>
+        /// <param name="dataContexts">Context class to access the db objects</param>
+        public EntityRepository(DomainNameDbContext dataContexts)
+            : base(dataContexts)
+        {
+        }
+
+        /// <summary>
+        /// Gets an entities.
+        /// </summary>
+        /// <param name="id">Id of Entity</param>
+        /// <returns>An Entity</returns>
+        public async Task<Entity> GetFullEntity(Guid id)
+        {
+            var entities = await (_dbContext.Entities.Where(w => w.EntityId == id)
+                .Include(p => p.EntityPictures)
+                .Include(x => x.Tags)
+                .Include(x => x.Comments)).FirstOrDefaultAsync();
+            return entities;
+        }
+
+        /// <summary>
+        /// Gets a list of entities.
+        /// </summary>
+        /// <returns>A list of Entities</returns>
+        public async Task<IQueryable<Entity>> GetAllFullyLoaded()
+        {
+            return (await _dbContext.Entities
+                .Include(p => p.EntityPictures)
+                .Include(x => x.Tags)
+                .Include(x => x.Comments).ToListAsync()).AsQueryable();
+        }
+
+        #region Comments
+
+        /// <summary>
+        /// Add Entity Comment
+        /// </summary>
+        /// <param name="entityComment"></param>
+        public async Task<int> SaveComment(EntityComment entityComment)
+        {
+            _dbContext.EntityComments.Add(entityComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Update Entity Comment
+        /// </summary>
+        /// <param name="entityComment"></param>
+        public async Task<int> UpdateComment(EntityComment entityComment)
+        {
+            var getEntityComment = await _dbContext.EntityComments.Where(c => c.CommentID == entityComment.CommentID).FirstOrDefaultAsync();
+            if (getEntityComment == null)
+                return 0;
+
+            _dbContext.Entry(entityComment).State = EntityState.Modified;
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Delete Entity Comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        public async Task<int> DeleteComment(Guid commentId)
+        {
+            var objToDelete = _dbContext.EntityComments.Find(commentId);
+            _dbContext.EntityComments.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Get All Entity Comments
+        /// </summary>
+        /// <param name="entityId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<EntityComment>> GetAllComments(Guid entityId)
+        {
+            return (await _dbContext.EntityComments
+               .Where(x => x.ContainerID == entityId).ToListAsync()).AsEnumerable();
+        }
+        #endregion
+    }
+}

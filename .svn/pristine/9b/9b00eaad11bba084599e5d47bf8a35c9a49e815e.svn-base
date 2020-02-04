@@ -1,0 +1,115 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using UniversalWeather.CMS.API.Domain.BlogRollItem;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Infrastructure.Extensions;
+using UniversalWeather.CMS.API.Infrastructure.Attributes;
+using UniversalWeather.CMS.API.Infrastructure.Handlers;
+using UniversalWeather.CMS.API.Infrastructure;
+
+namespace UniversalWeather.CMS.API.Controllers
+{
+    /// <summary>
+    /// This controller exposes endpoints to access the blogRollItems in the database
+    /// </summary>
+    public class BlogRollItemController : ApiController
+    {
+        private readonly IBlogRollItemService _blogRollItemService;
+        private string newLocation = string.Empty;
+        /// <summary>
+        /// Set the blogRollItem service
+        /// </summary>
+        /// <param name="service">The blogRollItem interface</param>
+        public BlogRollItemController(IBlogRollItemService service)
+        {
+            _blogRollItemService = service;
+        }
+
+        /// <summary>
+        /// This gets the BlogRollItem associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the BlogRollItem</param>
+        /// <returns>A blogRollItem to retrieve</returns>
+        public async Task<IHttpActionResult> Get(Guid id)
+        {
+            var blogRollItem = await _blogRollItemService.GetBlogRollItem(id);
+
+            if (blogRollItem == null)
+                return this.RecordNotFound(string.Format("Blog Roll Item not found for id: {0}", id));
+
+            return Ok(blogRollItem);
+        }
+
+        /// <summary>
+        /// This gets all the BlogRollItems in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of blogRollItems</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAll()
+        {
+            var blogRollItems = await _blogRollItemService.GetAll();
+
+            if (blogRollItems == null || blogRollItems.Count() == 0)
+                return this.RecordNotFound(string.Format("BlogRollItems not found."));
+
+            return Ok(blogRollItems);
+        }
+
+        /// <summary>
+        /// This saves a BlogRollItem into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="blogRollItem">The blogRollItem to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> Save([FromBody]BlogRollItem blogRollItem)
+        {
+            if (blogRollItem.BlogId == blogRollItem.BlogRollId)
+                return Ok("BlogId and BlogRollId should not be same.");
+
+            int result = await _blogRollItemService.AddBlogRollItem(blogRollItem);
+            //BlogRollId and BlogId with same BlogRollId(Guid) exists
+            if (result == 0)
+                return Ok("Already Exist: BlogRollId=" + blogRollItem.BlogRollId + " and BlogId=" + blogRollItem.BlogId);
+            if (result == -1)
+                return Ok("Already Exist: BlogId=" + blogRollItem.BlogId);
+            if (result == -2)
+                return Ok("Already Exist: BlogRollId=" + blogRollItem.BlogRollId);
+
+
+            newLocation = Url.Link("DefaultApi", new { controller = "BlogRollItem", action = "get", id = blogRollItem.BlogRollId });
+
+            return Created(newLocation.ToString(), string.Format("{0} created.", blogRollItem.Title));
+        }
+
+        /// <summary>
+        /// This deletes a BlogRollItem by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the blogRollItem</param>
+        /// <returns>Http Response Message</returns>
+        [HttpDelete]
+        public async Task<IHttpActionResult> Delete(Guid id)
+        {
+            if (await _blogRollItemService.DeleteBlogRollItem(id) == 0)
+                return this.RecordNotFound(string.Format("BlogRollItem not found for id: {0}", id));
+
+            return Ok("BlogRollItem  deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a blogRollItem from a complete BlogRollItem object. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="blogRollItem">The blogRollItem to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> Update([FromBody]BlogRollItem blogRollItem)
+        {
+            if (await _blogRollItemService.UpdateBlogRollItem(blogRollItem) == 0)
+                return this.RecordNotFound(string.Format("BlogRollItem not found."));
+
+            return Ok("BlogRollItem updated successfully.");
+        }
+    }
+}

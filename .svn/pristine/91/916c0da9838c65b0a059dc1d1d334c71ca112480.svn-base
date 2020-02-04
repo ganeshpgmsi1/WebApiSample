@@ -1,0 +1,126 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Catalog;
+
+namespace UniversalWeather.CMS.API.Domain.Repository
+{
+    public interface ICatalogRepository : IRepository<Catalog.Catalog>
+    {
+        #region Product
+
+        Task<Product> GetProduct(Guid id);
+        Task<Product> GetFullyLoadedProduct(Guid id);
+        Task<int> DeleteProduct(Guid id);
+        Task<int> AddProduct(Product product);
+        Task<int> UpdateProduct(Product product);
+        Task<IQueryable<Product>> GetAllProduct();
+        Task<IQueryable<Product>> GetAllFullyLoadedProduct();
+
+        #region Product Comments
+
+        Task<int> SaveProductComment(ProductComment productComment);
+        Task<int> UpdateProductComment(ProductComment productComment);
+        Task<int> DeleteProductComment(Guid commentId);
+        Task<IEnumerable<ProductComment>> GetAllProductComments(Guid productId);
+
+        #endregion
+        #endregion
+
+        Task<Department> GetDepartment(Guid id);
+        Task<Department> GetFullDepartment(Guid id);
+        Task<int> DeleteDepartment(Guid id);
+        Task<int> AddDepartment(Department department);
+        Task<int> UpdateDepartment(Department department);
+        Task<IQueryable<Department>> GetAllDepartment();
+        Task<IQueryable<Department>> GetAllDepartmentFullyLoaded();
+
+        #region Department Comments
+
+        Task<int> SaveDepartmentComment(DepartmentComment departmentComment);
+        Task<int> UpdateDepartmentComment(DepartmentComment departmentComment);
+        Task<int> DeleteDepartmentComment(Guid commentId);
+        Task<IEnumerable<DepartmentComment>> GetAllDepartmentComments(Guid departmentId);
+
+        #endregion
+
+        #region Manufacturer
+        Task<Manufacturer> GetManufacturer(Guid id);
+        Task<Manufacturer> GetManufacturer(Manufacturer manufacturer);
+        Task<Manufacturer> GetFullManufacturer(Guid id);
+        Task<int> DeleteManufacturer(Guid id);
+        Task<int> AddManufacturer(Manufacturer manufacturer);
+        Task<int> UpdateManufacturer(Manufacturer manufacturer);
+        Task<IQueryable<Manufacturer>> GetAllManufacturerIncludingDeleted();
+        Task<IQueryable<Manufacturer>> GetAllManufacturerExcludingDeleted();
+        Task<IQueryable<Manufacturer>> GetAllManufacturerWithChildIncludingDeleted();
+        Task<IQueryable<Manufacturer>> GetAllManufacturerWithChildExcludingDeleted();
+
+        #endregion
+
+        #region ProductAttribute
+        Task<ProductAttribute> GetProductAttribute(Guid id);
+        Task<ProductAttribute> GetProductAttribute(ProductAttribute productAttribute);
+        Task<int> DeleteProductAttribute(Guid id);
+        Task<int> AddProductAttribute(ProductAttribute productAttribute);
+        Task<int> UpdateProductAttribute(ProductAttribute productAttribute);
+        Task<IQueryable<ProductAttribute>> GetAllProductAttribute();
+        #endregion
+
+        #region ProductAttributeValue
+        Task<ProductAttributeValue> GetProductAttributeValue(Guid id);
+        Task<ProductAttributeValue> GetFullProductAttributeValue(Guid id);
+        Task<int> DeleteProductAttributeValue(Guid id);
+        Task<int> AddProductAttributeValue(ProductAttributeValue productAttributeValue);
+        Task<int> UpdateProductAttributeValue(ProductAttributeValue productAttributeValue);
+        Task<IQueryable<ProductAttributeValue>> GetAllProductAttributeValue();
+        #endregion
+
+        #region ProductTemplate
+        Task<ProductTemplate> GetProductTemplate(Guid id);
+        Task<ProductTemplate> GetProductTemplate(ProductTemplate productTemplate);
+        Task<int> DeleteProductTemplate(Guid id);
+        Task<int> AddProductTemplate(ProductTemplate productTemplate);
+        Task<int> UpdateProductTemplate(ProductTemplate productTemplate);
+        Task<IQueryable<ProductTemplate>> GetAllProductTemplate();
+
+        #endregion
+
+        #region ProductVariant
+
+        Task<ProductVariant> GetProductVariant(Guid id);
+        Task<ProductVariant> GetProductVariantFullyLoaded(Guid id);
+        Task<int> DeleteProductVariant(Guid id);
+        Task<int> AddProductVariant(ProductVariant productVariant);
+        Task<int> UpdateProductVariant(ProductVariant productVariant);
+        Task<IQueryable<ProductVariant>> GetAllProductVariant();
+        Task<IQueryable<ProductVariant>> GetAllProductVariantFullyLoaded();
+
+        #region ProductVariant Comments
+
+        Task<int> SaveProductVariantComment(ProductVariantComment productVariantComment);
+        Task<int> UpdateProductVariantComment(ProductVariantComment productVariantComment);
+        Task<int> DeleteProductVariantComment(Guid commentId);
+        Task<IEnumerable<ProductVariantComment>> GetAllProductVariantComments(Guid productVariantId);
+
+        #endregion
+        #endregion
+
+        Task<DepartmentTemplate> GetDepartmentTemplate(Guid id);
+        Task<DepartmentTemplate> GetDepartmentTemplate(DepartmentTemplate departmentTemplate);
+        Task<int> DeleteDepartmentTemplate(Guid id);
+        Task<int> AddDepartmentTemplate(DepartmentTemplate departmentTemplate);
+        Task<int> UpdateDepartmentTemplate(DepartmentTemplate departmentTemplate);
+        Task<IQueryable<DepartmentTemplate>> GetAllDepartmentTemplate();
+
+        Task<ManufacturerTemplate> GetManufacturerTemplate(Guid id);
+        Task<ManufacturerTemplate> GetManufacturerTemplate(ManufacturerTemplate departmentTemplate);
+        Task<int> DeleteManufacturerTemplate(Guid id);
+        Task<int> AddManufacturerTemplate(ManufacturerTemplate manufacturerTemplate);
+        Task<int> UpdateManufacturerTemplate(ManufacturerTemplate manufacturerTemplate);
+        Task<IQueryable<ManufacturerTemplate>> GetAllManufacturerTemplate();
+    }
+}

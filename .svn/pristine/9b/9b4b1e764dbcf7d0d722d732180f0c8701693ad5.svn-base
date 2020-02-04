@@ -1,0 +1,258 @@
+﻿using System;
+using System.Linq;
+using UniversalWeather.CMS.API.Application.Exceptions;
+using UniversalWeather.CMS.API.Domain.Post;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Utilities.Extensions;
+using System.Collections.Generic;
+using UniversalWeather.CMS.API.Domain.Tag;
+using UniversalWeather.CMS.API.Application.Common;
+using System.Threading.Tasks;
+
+namespace UniversalWeather.CMS.API.Application.Service
+{
+    /// <summary>
+    /// Post service class to perform checks on the data before sending to the client
+    /// </summary>
+    public class PostService : BaseService, IPostService
+    {
+        private readonly IPostRepository _postRepository;
+
+        /// <summary>
+        /// Setup the post repository
+        /// </summary>
+        /// <param name="repository">The post repository</param>
+        public PostService(IPostRepository repository)
+        {
+            if (repository == null)
+                throw new ArgumentNullException("Post respository null");
+
+            _postRepository = repository;
+        }
+
+        /// <summary>
+        /// Gets a post object.
+        /// </summary>
+        /// <param name="id">The unique identifier of the post</param>
+        /// <returns>A post object</returns>
+        public async Task<Post> GetPost(Guid id, Guid blogId, bool fullyload)
+        {
+            if (fullyload)
+                return await _postRepository.GetFullPost(id, blogId);
+            else
+                return await _postRepository.Get(id);
+        }
+
+        /// <summary>
+        /// Gets a list of all the posts
+        /// </summary>
+        /// <param name="includeDeleted">Include deleted posts or not</param>
+        /// <returns>A list of posts</returns>
+        public async Task<IQueryable<Post>> GetAllPosts(Guid? blogId, bool fullyload, bool includeDeleted)
+        {
+            IEnumerable<Post> posts = new List<Post>();
+
+            if (fullyload)
+                //posts = await _postRepository.GetAllFullyLoaded(blogId).Where(w => w.IsDeleted == includeDeleted);
+                posts = (await _postRepository.GetAllFullyLoaded(blogId)).Where(w => w.IsDeleted == includeDeleted);
+            else
+                posts =(await _postRepository.GetAllAync()).Where(w => w.IsDeleted == includeDeleted);
+
+            return UpdateTotalCount(posts);
+        }
+
+        /// <summary>
+        /// Gets posts within a certain category
+        /// </summary>
+        /// <param name="category">The category name</param>
+        /// <param name="blogId">The unique identifier of the blog</param>
+        /// <param name="includeDeleted">Include deleted posts or not</param>
+        /// <returns>A list of posts</returns>
+        public async Task<IQueryable<Post>> GetPostsByCategory(string category, Guid? blogId, bool includeDeleted)
+        {
+            var posts = (await _postRepository.GetAllFullyLoaded(blogId)).Where(w => w.Categories.Any(a => a.CategoryName.Equals(category, StringComparison.InvariantCultureIgnoreCase)));
+
+            return UpdateTotalCount(posts);
+        }
+
+        /// <summary>
+        /// Gets posts with a certain tag
+        /// </summary>
+        /// <param name="tag">The tag</param>
+        /// <param name="blogId">The unique identifier of the blog</param>
+        /// <param name="includeDeleted">Include deleted posts or not</param>
+        /// <returns>A list of posts</returns>
+        public async Task<IQueryable<Post>> GetPostsByTag(string tag, Guid? blogId, bool includeDeleted)
+        {
+            var posts = await _postRepository.GetAllFullyLoaded(blogId);
+
+            return UpdateTotalCount(posts);
+        }
+
+        /// <summary>
+        /// Gets post via the published state
+        /// </summary>
+        /// <param name="published">Published or Unpublished bool</param>
+        /// <param name="blogId">The unique identifier of the blog</param>
+        /// <param name="includeDeleted">Include deleted posts or not</param>
+        /// <returns>A list of posts</returns>
+        public async Task<IQueryable<Post>> GetPostsByPublishState(bool published, Guid? blogId, bool fullyload, bool includeDeleted)
+        {
+            IEnumerable<Post> posts = new List<Post>();
+
+            if (fullyload)
+            {
+                posts = (await _postRepository.GetAllFullyLoaded(blogId)).Where(w => w.IsPublished == published && w.IsDeleted == includeDeleted);
+            }
+            else
+            {
+                //posts = _postRepository.Find(w => w.IsPublished == published && w.IsDeleted == includeDeleted);
+                posts =(await _postRepository.GetAllAync()).Where(w => w.IsPublished == published && w.IsDeleted == includeDeleted);
+            }
+            return UpdateTotalCount(posts);
+        }
+
+        /// <summary>
+        /// Gets a list of posts for a given author
+        /// </summary>
+        /// <param name="author">The author to get the posts for</param>
+        /// <param name="blogId">The unique identifier of the blog</param>
+        /// <param name="includeDeleted">Include deleted posts or not</param>
+        /// <returns>A list of posts</returns>
+        public async Task<IQueryable<Post>> GetPostsByAuthor(string author, Guid? blogId, bool fullyload, bool includeDeleted)
+        {
+            IEnumerable<Post> posts = new List<Post>();
+
+            if (fullyload)
+                posts = (await _postRepository.GetAllFullyLoaded(blogId)).Where(w => w.Author.Equals(author, StringComparison.CurrentCultureIgnoreCase) && w.IsDeleted == includeDeleted);
+            else
+                //posts = _postRepository.Find(w => w.Author == author && w.IsDeleted == includeDeleted);
+                posts = (await _postRepository.GetAllAsync()).Where(w => w.Author == author && w.IsDeleted == includeDeleted);
+
+            return UpdateTotalCount(posts);
+        }
+
+        /// <summary>
+        /// Gets the deleted posts
+        /// </summary>
+        /// <returns>A list of deleted post</returns>
+        public async Task<IQueryable<Post>> GetDeletedPosts(Guid? blogId)
+        {
+            var posts = await _postRepository.FindAllAsync(w => w.IsDeleted == true);
+
+            return UpdateTotalCount(posts);
+        }
+
+        /// <summary>
+        /// Gets the comments for a post and throws an exception if there isnt 
+        /// any avaiable.
+        /// </summary>
+        /// <param name="id">The unique identifier of the post</param>
+        /// <param name="blogId">The unique identifier of the blog</param>
+        /// <param name="includeDeleted">Include deleted posts or not</param>
+        /// <returns>A list of comments</returns>
+        public async Task<IQueryable<Comment>> GetPostComments(Guid id, Guid? blogId, bool includeDeleted)
+        {
+            var comments = (await _postRepository.GetPostComments(id, blogId)).Where(w => w.IsDeleted == includeDeleted);
+
+            return UpdateTotalCount(comments);
+        }
+
+        /// <summary>
+        /// Gets all the post categories
+        /// </summary>
+        /// <param name="blogId">The unique identifier of the blog</param>
+        /// <returns>A list of categories</returns>
+        public async Task<IQueryable<Category>> GetCategories(Guid? blogId)
+        {
+            var categories = await _postRepository.GetCategories(blogId);
+            IQueryable<Category> ObjReturn = UpdateTotalCount(categories);
+            return ObjReturn;
+        }
+
+        #region Updates Total Count
+
+        /// <summary>
+        /// Update Total Count
+        /// </summary>
+        /// <param name="posts"></param>
+        /// <returns></returns>
+        private IQueryable<Post> UpdateTotalCount(IEnumerable<Post> posts)
+        {
+            return posts.Select(x =>
+            {
+                var categories = x.Categories;
+                var comments = x.Comments;
+                var postTags = x.Tags;
+
+                if (categories != null && categories.Count > 0)
+                {
+                    categories = UpdateTotalCount(categories).ToList();
+                }
+                if (comments != null && comments.Count > 0)
+                {
+                    comments = UpdateTotalCount(comments).ToList();
+                }
+                if (postTags != null && postTags.Count > 0)
+                {
+                    postTags = UpdateTotalCount(postTags).ToList();
+                }
+
+                x.TotalCount = posts.Count();
+
+                return x;
+            }
+            ).AsQueryable();
+        }
+
+        /// <summary>
+        /// Update Total Count
+        /// </summary>
+        /// <param name="posts"></param>
+        /// <returns></returns>
+        private IQueryable<Category> UpdateTotalCount(IEnumerable<Category> categories)
+        {
+            return categories.Select(x =>
+            {
+                x.TotalCount = categories.Count();
+
+                return x;
+            }
+            ).AsQueryable();
+        }
+
+        /// <summary>
+        /// Update Total Count
+        /// </summary>
+        /// <param name="posts"></param>
+        /// <returns></returns>
+        private IQueryable<Tag> UpdateTotalCount(IEnumerable<Tag> postTags)
+        {
+            return postTags.Select(x =>
+            {
+                x.TotalCount = postTags.Count();
+
+                return x;
+            }
+            ).AsQueryable();
+        }
+
+        /// <summary>
+        /// Update Total Count
+        /// </summary>
+        /// <param name="posts"></param>
+        /// <returns></returns>
+        private IQueryable<Comment> UpdateTotalCount(IEnumerable<Comment> comments)
+        {
+            return comments.Select(x =>
+            {
+                x.TotalCount = comments.Count();
+
+                return x;
+            }
+            ).AsQueryable();
+        }
+        #endregion
+    }
+}

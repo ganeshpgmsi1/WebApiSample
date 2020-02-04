@@ -1,0 +1,22 @@
+﻿using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Entity;
+
+namespace UniversalWeather.CMS.API.Application.Mapping
+{
+    /// <summary>
+    /// This class contains the Mapping Configuration for Entity Comment
+    /// </summary>
+    public class EntityCommentConfiguration : EntityTypeConfiguration<EntityComment>
+    {
+        public EntityCommentConfiguration()
+        {
+            ToTable("Entity_Comment");
+            HasKey(k => k.CommentID);
+            HasRequired(b => b.Entity)
+            .WithMany(i => i.Comments)
+            .HasForeignKey(b => b.ContainerID);
+        }
+
+    }
+}
+

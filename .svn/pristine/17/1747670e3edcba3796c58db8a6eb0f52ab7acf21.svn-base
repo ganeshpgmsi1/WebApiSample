@@ -1,0 +1,22 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Person;
+
+namespace UniversalWeather.CMS.API.Domain.Repository
+{
+    public interface IPersonRepository : IRepository<Person.Person>
+    {
+        Task<Person.Person> GetFullPerson(Guid id);
+        Task<IQueryable<Person.Person>> GetAllFullyLoaded();
+
+        #region Comments
+        Task<int> SaveComment(PersonComment personComment);
+        Task<int> UpdateComment(PersonComment personComment);
+        Task<int> DeleteComment(Guid commentId);
+        Task<IEnumerable<PersonComment>> GetAllComments(Guid personId);
+        #endregion
+    }
+}

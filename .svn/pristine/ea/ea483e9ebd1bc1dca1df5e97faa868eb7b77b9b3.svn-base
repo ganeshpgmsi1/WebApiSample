@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.BlogRollItem;
+
+namespace UniversalWeather.CMS.API.Domain.Repository
+{
+    public interface IBlogRollItemRepository : IRepository<BlogRollItem.BlogRollItem>
+    {
+        Task<int> AddBlogRollItem(BlogRollItem.BlogRollItem blogRollItem);
+    }
+
+}

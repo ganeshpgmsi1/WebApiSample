@@ -1,0 +1,24 @@
+﻿using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Location;
+
+namespace UniversalWeather.CMS.API.Data.Mapping
+{
+    /// <summary>
+    /// This class contains the Mapping Configuration for Location Comment
+    /// </summary>
+    public class LocationCommentConfiguration : EntityTypeConfiguration<LocationComment>
+    {
+        /// <summary>
+        /// Set mapping values on initialization
+        /// </summary> 
+        public LocationCommentConfiguration()
+        {
+            ToTable("Location_Comment");
+            HasKey(p => p.CommentID);
+            HasRequired(b => b.Location)
+           .WithMany(i => i.Comments)
+           .HasForeignKey(b => b.ContainerID);
+        }
+    }
+}
+

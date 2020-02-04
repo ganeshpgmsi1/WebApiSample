@@ -1,0 +1,54 @@
+﻿using Elmah;
+using System.Collections.Generic;
+using System.Data.Entity.Validation;
+using System.Diagnostics;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using System.Web.Http;
+using System.Web.Http.Controllers;
+using System.Web.Http.Filters;
+
+namespace UniversalWeather.CMS.API.Infrastructure.Attributes
+{
+    /// <summary>
+    /// Globally handle exceptions
+    /// </summary>
+    public class ExceptionHandler : ExceptionFilterAttribute
+    {
+        public override void OnException(HttpActionExecutedContext context)
+        {
+            if (context.Exception == null)
+            {
+                return;
+            }
+
+            //Log the exception (sort the UV_APIs database out)
+            //ErrorSignal.FromCurrentContext().Raise(context.Exception);
+
+            //Dont tell the client about the error for security purposes, but can extend
+            //to check for common exceptions and return more friendly messages
+            var response = new HttpResponseMessage(HttpStatusCode.InternalServerError)
+            {
+                Content = ErrorResponse("Unknown error", "application/json"),
+                ReasonPhrase = "Server Error"
+            };
+
+            throw new HttpResponseException(response);
+        }
+
+        /// <summary>
+        /// Creates the json/xml error response message
+        /// </summary>
+        /// <param name="mediaType">Media type to return</param>
+        /// <param name="message">Error response</param>
+        /// <returns></returns>
+        private static StringContent ErrorResponse(string message, string mediaType)
+        {
+            return new StringContent(message, Encoding.UTF8, mediaType);
+        }
+    }
+
+
+
+}

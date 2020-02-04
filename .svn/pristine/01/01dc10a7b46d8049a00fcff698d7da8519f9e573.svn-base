@@ -1,0 +1,90 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Common;
+using Newtonsoft.Json;
+
+namespace UniversalWeather.CMS.API.Domain.Airport
+{
+    /// <summary>
+    /// Represents a Airport
+    /// </summary>
+    public partial class Airport
+    {
+        public int Id { get; set; }
+        public System.Guid AirportId { get; set; }
+        public string Name { get; set; }
+        public string Longitude { get; set; }
+        public string Latitude { get; set; }
+        public string Address { get; set; }
+        public string City { get; set; }
+        public string Region { get; set; }
+        public string Country { get; set; }
+        public string PostalCode { get; set; }
+        public string ICAOCode { get; set; }
+        public string IATACode { get; set; }
+        public string HoursOfOperation { get; set; }
+        public string TimeZone { get; set; }
+        public string Elevation { get; set; }
+        public string MagneticVariation { get; set; }
+        public string FIRCode { get; set; }
+        public string LongestRunway { get; set; }
+        public string FuelType { get; set; }
+        public string PriorPermissionRequired { get; set; }
+        public string SlotsRequired { get; set; }
+        public string AirportOfEntry { get; set; }
+        public string CustomsOffice { get; set; }
+        public string DiagramURL { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public System.DateTime DateCreated { get; set; }
+        public System.DateTime DateModified { get; set; }
+        public Nullable<System.Guid> DefaultPictureId { get; set; }
+    }
+    public partial class Airport_Comment
+    {
+        public int Airport_CommentRowID { get; set; }
+        public System.Guid CommentID { get; set; }
+        public System.Guid ContainerID { get; set; }
+        public System.Guid ParentCommentID { get; set; }
+        public System.DateTime CommentDate { get; set; }
+        public string Author { get; set; }
+        public string Email { get; set; }
+        public string Website { get; set; }
+        public string CommentText { get; set; }
+        public string Country { get; set; }
+        public string Ip { get; set; }
+        public Nullable<bool> IsApproved { get; set; }
+        public string ModeratedBy { get; set; }
+        public string Avatar { get; set; }
+        public bool IsSpam { get; set; }
+        public bool IsDeleted { get; set; }
+        public string Language { get; set; }
+        public string BrowserHeaderInfo { get; set; }
+    }
+    public partial class Airport_Picture_Mapping
+    {
+        public int Id { get; set; }
+        public System.Guid Airport_Picture_MappingId { get; set; }
+        public System.Guid AirportId { get; set; }
+        public System.Guid PictureId { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public System.DateTime DateCreated { get; set; }
+        public System.DateTime DateModified { get; set; }
+    }
+    public partial class Airport_Tag
+    {
+        public int Id { get; set; }
+        public System.Guid Airport_TagId { get; set; }
+        public System.Guid AirportId { get; set; }
+        public System.Guid TagId { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public System.DateTime DateCreated { get; set; }
+        public System.DateTime DateModified { get; set; }
+    }
+}

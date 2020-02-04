@@ -1,0 +1,484 @@
+﻿using System;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Net.Mail;
+//using UniversalWeather.CMS.API.Data.Common;
+using UniversalWeather.CMS.API.Domain.Survey;
+using Dapper;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Data.Configuration;
+using System.Data.Entity;
+using UniversalWeather.CMS.API.Utilities.Email;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace UniversalWeather.CMS.API.Data.Repository
+{
+    /// <summary>
+    /// Survey Repository Class
+    /// </summary>
+    public class SurveyRepository : BaseRepository<Survey>, ISurveyRepository
+    {
+        private IDbSet<Answer> _dbAnswerSet;
+        private IDbSet<Question> _dbQuestionSet;
+        private IDbSet<QuestionOption> _dbQuestionOptionSet;
+
+        /// <summary>
+        /// Get the dbcontext from the baserepository
+        /// </summary>
+        /// <param name="dataContexts">Context class to access the db objects</param>
+        public SurveyRepository(DomainNameDbContext dataContexts)
+            : base(dataContexts)
+        {
+            _dbAnswerSet = _dbContext.Set<Answer>();
+            _dbQuestionSet = _dbContext.Set<Question>();
+            _dbQuestionOptionSet = _dbContext.Set<QuestionOption>();
+        }
+
+        # region Survey
+
+        /// <summary>
+        /// Add a new survey
+        /// </summary>
+        /// <param name="survey">list of survey</param>
+        /// <returns></returns>
+        public async Task<int> SaveSurvey(Survey survey)
+        {
+            var getSurvey = await _dbContext.Surveys.Where(s => s.SurveyId == survey.SurveyId).FirstOrDefaultAsync();
+            if (getSurvey != null)
+                return 0;
+
+            return await AddAsync(survey);
+        }
+        
+        
+        
+        /// <summary>
+        /// Get Survey By SurveyNo
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Survey> GetSurveyBySurveyNo(Guid id)
+        {
+            return await _dbContext.Surveys.FirstOrDefaultAsync(x => x.SurveyId.Equals(id));
+        }
+
+        /// <summary>
+        /// Get Survey
+        /// </summary>
+        /// <param name="surveyId">Survey Id</param>
+        /// <returns>Survey object</returns>
+        public async Task<Survey> GetSurvey(Guid surveyId)
+        {
+            return await _dbContext.Surveys.FirstOrDefaultAsync(x => x.SurveyId.Equals(surveyId));
+        }
+
+        /// <summary>
+        /// Get Survey
+        /// </summary>
+        /// <param name="surveyId">Survey Id</param>
+        /// <returns>Survey object which is not deleted</returns>
+        public async Task<Survey> GetSurveyExcludeDeleted(Guid surveyId)
+        {
+            return await _dbContext.Surveys.Where(x => !x.IsDeleted).FirstOrDefaultAsync(x => x.SurveyId.Equals(surveyId));
+        }
+
+        /// <summary>
+        /// Get Survey with all its children populated excluding deleted surveys
+        /// </summary>
+        /// <param name="surveyId">Survey Id</param>
+        /// <returns>Survey object with all children populated and which is not deleted</returns>
+        public async Task<Survey> GetSurveyFullyLoadedExcludeDeleted(Guid surveyId)
+        {
+            return await _dbContext.Surveys
+                    .Where(x => !x.IsDeleted)
+                    .Include(x => x.Questions)
+                    .Include(x => x.Answers)
+                    .Include("Questions.QuestionOptions")
+                    .Include(p => p.Tags)
+                    .Include(p => p.Comments)
+                    .FirstOrDefaultAsync(x => x.SurveyId.Equals(surveyId));
+        }
+
+        /// <summary>
+        /// Get Survey with all its children populated
+        /// </summary>
+        /// <param name="surveyId">Survey Id</param>
+        /// <returns>Survey object with all children populated</returns>
+        public async Task<Survey> GetSurveyFullyLoaded(Guid surveyId)
+        {
+            return await _dbContext.Surveys
+                    .Include(x => x.Questions)
+                    .Include(x => x.Answers)
+                    .Include("Questions.QuestionOptions")
+                    .Include(p => p.Tags)
+                    .Include(p => p.Comments)
+                    .FirstOrDefaultAsync(x => x.SurveyId.Equals(surveyId));
+        }
+
+        /// <summary>
+        /// Send Mail Message
+        /// </summary>
+        /// <param name="mailMessage"></param>
+        /// <returns></returns>
+        public string SendMailMessage(MailMessage mailMessage)
+        {
+            return EmailHelper.SendMailMessage(mailMessage);
+        }
+
+        /// <summary>
+        /// Gets all Surveys fully loaded excluding deleted surveys
+        /// </summary>
+        /// <returns>Surveys</returns>
+        public async Task<IQueryable<Survey>> GetAllSurveysFullyLoadedExcludeDeleted()
+        {
+            return (await _dbContext.Surveys
+                    .Include(x => x.Questions)
+                    .Include(x => x.Answers)
+                    .Include("Questions.QuestionOptions")
+                    .Include(p => p.Tags)
+                    .Include(p => p.Comments)
+                    .Where(x => x.IsDeleted == false).ToListAsync()).AsQueryable();
+
+        }
+
+        /// <summary>
+        /// Gets all Surveys fully loaded
+        /// </summary>
+        /// <returns>Surveys</returns>
+        public async Task<IQueryable<Survey>> GetAllSurveysFullyLoaded()
+        {
+            return (await _dbContext.Surveys
+                    .Include(x => x.Questions)
+                    .Include(x => x.Answers)
+                    .Include("Questions.QuestionOptions")
+                    .Include(p => p.Tags).ToListAsync()).AsQueryable();
+        }
+
+        /// <summary>
+        /// Gets all Surveys
+        /// </summary>
+        /// <returns>Surveys</returns>
+        public async Task<IQueryable<Survey>> GetAllSurveys()
+        {
+            return (await _dbContext.Surveys.ToListAsync()).AsQueryable();
+        }
+
+        /// <summary>
+        /// Gets all Surveys exclude deleted
+        /// </summary>
+        /// <returns>Surveys</returns>
+        public async Task<IQueryable<Survey>> GetAllSurveysExcludeDeleted()
+        {
+            return (await _dbContext.Surveys.Where(x => x.IsDeleted == false).ToListAsync()).AsQueryable();
+        }
+
+        # endregion
+
+        #region Answer
+
+        /// <summary>
+        /// Get answer by answer id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Answer> GetAnswer(Guid id)
+        {
+            // return await _dbContext.Products.Where(x=>x.ProductId==id).FirstOrDefaultAsync();
+            //return  _dbAnswerSet.Find(id);
+            return await _dbContext.Answers.Where(x => x.AnswerId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get answer 
+        /// </summary>
+        /// <param name="answer"></param>
+        /// <returns></returns>
+        public async Task<Answer> GetAnswer(Answer answer)
+        {
+            return await _dbContext.Answers.Where(a => a.AnswerId == answer.AnswerId).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Delete answer by answer id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteAnswer(Guid id)
+        {
+            var objToDelete = _dbAnswerSet.Find(id);
+            _dbAnswerSet.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves answer
+        /// </summary>
+        /// <param name="answer"></param>
+        /// <returns></returns>
+        public async Task<int> AddAnswer(Answer answer)
+        {
+            _dbAnswerSet.Add(answer);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Update answer
+        /// </summary>
+        /// <param name="answer"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateAnswer(Answer answer)
+        {
+            var getAnswer = (await _dbContext.Answers.Where(c => c.AnswerId == answer.AnswerId).FirstOrDefaultAsync());
+            if (getAnswer == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getAnswer);
+            attachedEntry.CurrentValues.SetValues(answer);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// GetAll all answer
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Answer>> GetAllAnswer()
+        {
+            return (await _dbContext.Answers.ToListAsync()).AsQueryable();
+        }
+
+        #endregion
+
+        #region Question
+
+        /// <summary>
+        /// Get question by question id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Question> GetQuestion(Guid id)
+        {
+            // return _dbQuestionSet.Find(id);
+            return await _dbContext.Questions.Where(x => x.QuestionId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get question
+        /// </summary>
+        /// <param name="question"></param>
+        /// <returns></returns>
+        public async Task<Question> GetQuestion(Question question)
+        {
+            return await _dbContext.Questions.Where(q => q.QuestionId == question.QuestionId).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Delete question by question id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteQuestion(Guid id)
+        {
+            var objToDelete = _dbQuestionSet.Find(id);
+            _dbQuestionSet.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves question
+        /// </summary>
+        /// <param name="question"></param>
+        /// <returns></returns>
+        public async Task<int> AddQuestion(Question question)
+        {
+            _dbQuestionSet.Add(question);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Update question
+        /// </summary>
+        /// <param name="question"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateQuestion(Question question)
+        {
+            var getQuestion = (await _dbContext.Questions.Where(c => c.QuestionId == question.QuestionId).FirstOrDefaultAsync());
+            if (getQuestion == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getQuestion);
+            attachedEntry.CurrentValues.SetValues(question);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// GetAll question
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Question>> GetAllQuestion()
+        {
+            return (await _dbContext.Questions.ToListAsync()).AsQueryable();
+        }
+
+        /// <summary>
+        /// GetAll question
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Question>> GetAllQuestionExcludeDeleted()
+        {
+            return (await _dbContext.Questions.Where(x => !x.IsDeleted).ToListAsync()).AsQueryable();
+        }
+
+        /// <summary>
+        /// GetAll question
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Question>> GetAllQuestionsFullyLoadedIncludeDeleted(Guid? surveyId)
+        {
+            return (await _dbContext.Questions.Where(w => w.SurveyId == surveyId)
+                    .Include(x => x.QuestionOptions).ToListAsync())
+                    .AsQueryable();
+        }
+
+        /// <summary>
+        /// GetAll question
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Question>> GetAllQuestionsFullyLoadedExcludeDeleted(Guid? surveyId)
+        {
+            return (await _dbContext.Questions
+                    .Where(x =>!x.IsDeleted && x.SurveyId == surveyId)
+                    .Include(x => x.QuestionOptions).ToListAsync())
+                   .AsQueryable();
+                   
+        }
+
+        #endregion
+
+        #region QuestionOption
+
+        /// <summary>
+        /// Get questionoption by questionoption id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<QuestionOption> GetQuestionOption(Guid id)
+        {
+            // return _dbQuestionOptionSet.Find(id);
+            return await _dbContext.QuestionOptions.Where(x => x.QuestionOptionId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get question option
+        /// </summary>
+        /// <param name="questionOption"></param>
+        /// <returns></returns>
+        public async Task<QuestionOption> GetQuestionOption(QuestionOption questionOption)
+        {
+            return await _dbContext.QuestionOptions.Where(o => o.QuestionOptionId == questionOption.QuestionOptionId).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Delete question option by questionoption id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteQuestionOption(Guid id)
+        {
+            var objToDelete = _dbQuestionOptionSet.Find(id);
+            _dbQuestionOptionSet.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves questionoption
+        /// </summary>
+        /// <param name="questionOption"></param>
+        /// <returns></returns>
+        public async Task<int> AddQuestionOption(QuestionOption questionOption)
+        {
+            _dbQuestionOptionSet.Add(questionOption);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Update question option
+        /// </summary>
+        /// <param name="questionOption"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateQuestionOption(QuestionOption questionOption)
+        {
+            var getQuestionOption = (await _dbContext.QuestionOptions.Where(c => c.QuestionOptionId == questionOption.QuestionOptionId).FirstOrDefaultAsync());
+            if (getQuestionOption == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getQuestionOption);
+            attachedEntry.CurrentValues.SetValues(questionOption);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// GetAll question option
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<QuestionOption>> GetAllQuestionOption()
+        {
+            return (await _dbContext.QuestionOptions.ToListAsync()).AsQueryable();
+        }
+
+        #endregion
+        
+        #region ISurveyRepository Members
+
+        /// <summary>
+        /// Saves comment
+        /// </summary>
+        /// <param name="surveyComment"></param>
+        /// <returns></returns>
+        public async Task<int> SaveComment(SurveyComment surveyComment)
+        {
+            _dbContext.SurveyComments.Add(surveyComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Update comment
+        /// </summary>
+        /// <param name="surveyComment"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateComment(SurveyComment surveyComment)
+        {
+            var getSurveyComment = (await _dbContext.SurveyComments.Where(c => c.CommentID == surveyComment.CommentID).FirstOrDefaultAsync());
+            if (getSurveyComment == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getSurveyComment);
+            attachedEntry.CurrentValues.SetValues(surveyComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Update comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteComment(Guid commentId)
+        {
+            var objToDelete = _dbContext.SurveyComments.Find(commentId);
+            _dbContext.SurveyComments.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// GetAll comments
+        /// </summary>
+        /// <param name="surveyId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<SurveyComment>> GetAllComments(Guid surveyId)
+        {
+            return (await _dbContext.SurveyComments
+               .Where(x => x.ContainerID == surveyId).ToListAsync()).AsEnumerable();
+        }
+
+        #endregion
+    }
+}

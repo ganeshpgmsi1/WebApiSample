@@ -1,0 +1,70 @@
+﻿using SimpleInjector;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Web;
+using UniversalWeather.CMS.API.Application.Service;
+using UniversalWeather.CMS.API.Application.Services;
+using UniversalWeather.CMS.API.Data;
+using UniversalWeather.CMS.API.Data.Repository;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Domain.Services;
+
+namespace UniversalWeather.CMS.API.Infrastructure.Ioc
+{
+    public static class IocUtilities
+    {
+        /// <summary>
+        /// Build the simple injector container and register all the services.
+        /// </summary>
+        /// <returns><see cref="SimpleInjector.Container"/></returns>
+        public static Container SetupContainer()
+        {
+            var container = new Container();
+            container.RegisterApiControllers();
+
+            #region Services
+            container.RegisterPerWebRequest<IAppointmentService, AppointmentService>();
+            container.RegisterPerWebRequest<IBlogRollItemService, BlogRollItemService>();
+            container.RegisterPerWebRequest<IBlogService, BlogService>();
+            container.RegisterPerWebRequest<ICatalogService, CatalogService>();
+            container.RegisterPerWebRequest<IContactService, ContactService>();
+            container.RegisterPerWebRequest<IEntityService, EntityService>();
+            container.RegisterPerWebRequest<ILocationService, LocationService>();
+            container.RegisterPerWebRequest<IPageService, PageService>();
+            container.RegisterPerWebRequest<IPersonService, PersonService>();
+            container.RegisterPerWebRequest<IPictureService, PictureService>();
+            container.RegisterPerWebRequest<IPostService, PostService>();
+            container.RegisterPerWebRequest<ISurveyService, SurveyService>();
+
+            container.RegisterPerWebRequest<IApiService, ApiService>();
+
+            #endregion
+
+            #region Records
+
+            container.RegisterPerWebRequest<IAppointmentRepository, AppointmentRepository>();
+            container.RegisterPerWebRequest<IBlogRollItemRepository, BlogRollItemRepository>();
+            container.RegisterPerWebRequest<IBlogRepository, BlogRepository>();
+            container.RegisterPerWebRequest<ICatalogRepository, CatalogRepository>();
+            container.RegisterPerWebRequest<IContactRepository, ContactRepository>();
+            container.RegisterPerWebRequest<IEntityRepository, EntityRepository>();
+            container.RegisterPerWebRequest<ILocationRepository, LocationRepository>();
+            container.RegisterPerWebRequest<IPageRepository, PageRepository>();
+            container.RegisterPerWebRequest<IPersonRepository, PersonRepository>();
+            container.RegisterPerWebRequest<IPictureRepository, PictureRepository>();
+            container.RegisterPerWebRequest<IPostRepository, PostRepository>();
+            container.RegisterPerWebRequest<ISurveyRepository, SurveyRepository>();
+            container.RegisterPerWebRequest<IApiLogRecords, ApiLogRecords>();
+            container.RegisterPerWebRequest<IApiUserRecords, ApiUserRecords>();
+            container.RegisterPerWebRequest<DomainNameDbContext>(() => new DomainNameDbContext());
+
+            #endregion
+
+            //Check for any potential incompatible services and fail before application start
+            container.Verify();
+            return container;
+        }
+    }
+}

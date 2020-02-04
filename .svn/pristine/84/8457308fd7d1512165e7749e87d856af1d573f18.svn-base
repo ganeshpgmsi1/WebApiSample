@@ -1,0 +1,39 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Comment;
+using UniversalWeather.CMS.API.Domain.Common;
+using Newtonsoft.Json;
+using System.Xml.Serialization;
+
+namespace UniversalWeather.CMS.API.Domain.Page
+{
+    /// <summary>
+    /// Represents a Page
+    /// </summary>
+    public class Page : IEntity
+    {
+        public Guid BlogId { get; set; }
+        public Guid PageId { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string PageContent { get; set; }
+        public string Keywords { get; set; }
+        public bool IsFrontPage { get; set; }
+        public Guid? Parent { get; set; }
+        public bool ShowInList { get; set; }
+        public string Slug { get; set; }
+        public string RedirectUrl { get; set; }
+        public int DisplayOrder { get; set; }
+        public string MasterPage { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+        [XmlIgnore]
+        public ICollection<Tag.Tag> Tags { get; set; }
+        [XmlIgnore]
+        public ICollection<PageComment> Comments { get; set; }
+    }
+}

@@ -1,0 +1,20 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity.ModelConfiguration;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Tag;
+
+namespace UniversalWeather.CMS.API.Application.Mapping
+{
+    class TagConfiguration : EntityTypeConfiguration<Tag>
+    {
+        public TagConfiguration()
+        {
+            ToTable("Tags");
+            Property(p => p.TagId).HasColumnName("TagID");
+            HasKey(k => k.TagId);
+        }
+    }
+}

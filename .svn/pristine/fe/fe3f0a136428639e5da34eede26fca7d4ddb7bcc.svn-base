@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Common;
+using UniversalWeather.CMS.API.Domain.Airport;
+
+namespace UniversalWeather.CMS.API.Domain.Repository
+{
+    public interface IAirportRepository : IRepository<Airport.Airport>
+    {
+        MiniAirport GetMiniAirport(int? id, string icao);
+        Airport.Airport GetFullAirport(int? id, string icao);
+        IQueryable<Airport.Airport> GetAllFullyLoaded();
+        IEnumerable<AirportHandler> GetAirportHandler(int? id, string icao, string handler);
+        IEnumerable<AirportHandler> GetUVAirAvailArptHandler(string icao);
+
+        #region Comments
+        void SaveComment(AirportComment AirportComment);
+        void UpdateComment(AirportComment AirportComment);
+        void DeleteComment(Guid commentId);
+        IEnumerable<AirportComment> GetAllComments(int AirportId);
+        #endregion
+    }
+}

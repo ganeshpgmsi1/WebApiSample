@@ -1,0 +1,39 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Location;
+using System.Data.Entity.ModelConfiguration;
+
+namespace UniversalWeather.CMS.API.Data.Mapping
+{
+    /// <summary>
+    /// Custom mapping configuration
+    /// </summary>
+    public class LocationConfiguration : EntityTypeConfiguration<Location>
+    {
+        /// <summary>
+        /// Set mapping values on initialization
+        /// </summary>
+        public LocationConfiguration()
+        {
+            ToTable("Location");
+            HasKey(p => p.LocationId);
+            HasMany(p => p.Tags)
+                 .WithMany(t => t.Locations)
+                 .Map(mc =>
+                 {
+                     mc.ToTable("Location_Tag");
+                     mc.MapLeftKey("LocationId");
+                     mc.MapRightKey("TagId");
+                 });
+           HasMany(p => p.Contacts).WithMany(t => t.Locations)
+                 .Map(mc =>
+                 {
+                     mc.ToTable("Location_Contact");
+                     mc.MapLeftKey("LocationId");
+                     mc.MapRightKey("ContactId");
+                 });
+        }
+    }
+}

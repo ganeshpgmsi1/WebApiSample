@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Contact;
+
+namespace UniversalWeather.CMS.API.Data.Mapping
+{
+    public class ContactConfiguration : EntityTypeConfiguration<Contact>
+    {
+        public ContactConfiguration()
+        {
+            ToTable("Contact");
+            HasKey(k => k.ContactId);
+            HasRequired(a => a.ContactType)
+               .WithMany()
+               .HasForeignKey(u => u.ContactTypeId);
+        }
+    }
+}

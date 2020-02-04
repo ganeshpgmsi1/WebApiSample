@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Location;
+using System.Threading.Tasks;
+
+namespace UniversalWeather.CMS.API.Domain.Services
+{
+    public interface ILocationService
+    {
+        Task<Location.Location> Get(Guid id, bool fullyload);
+        Task<int> Delete(Guid id);
+        Task<int> Add(Location.Location location);
+        Task<int> Update(Location.Location location);
+        Task<IQueryable<Location.Location>> GetAll(bool fullyload);
+
+        #region Comments
+        Task<int> SaveComment(LocationComment locationComment);
+        Task<int> UpdateComment(LocationComment locationComment);
+        Task<int> DeleteComment(Guid commentId);
+        Task<IEnumerable<LocationComment>> GetAllComments(Guid locationId);
+        #endregion
+    }
+}

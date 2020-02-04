@@ -1,0 +1,136 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Data.Configuration;
+//using UniversalWeather.CMS.API.Data.Repository;
+using UniversalWeather.CMS.API.Domain.Appointment;
+using UniversalWeather.CMS.API.Domain.Repository;
+
+namespace UniversalWeather.CMS.API.Data.Repository
+{
+    public class AppointmentRepository : BaseRepository<Appointment>, IAppointmentRepository
+    {
+        private IDbSet<Appointment> _dbAppointmentSet;
+
+        /// <summary>
+        /// Get the dbcontext from the baserepository
+        /// </summary>
+        /// <param name="dataContexts">Context class to access the db objects</param>
+        public AppointmentRepository(DomainNameDbContext dataContexts)
+            : base(dataContexts)
+        {
+            _dbAppointmentSet = _dbContext.Set<Appointment>();
+        }
+
+        /// <summary>
+        /// Get an appointment
+        /// </summary>
+        /// <param name="id">Id of appointment to get</param>
+        /// <returns></returns>
+        public async Task<Appointment> GetAppointment(Guid id)
+        {
+            return await _dbContext.Appointments.Where(x => x.AppointmentId == id && x.AppointmentTaken == false).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Gets an appointment with those already taken
+        /// </summary>
+        /// <param name="id">Id of appointment to get</param>
+        /// <returns></returns>
+        public async Task<Appointment> GetAppointmentIncludeTaken(Guid id)
+        {
+            return await _dbContext.Appointments.Where(x => x.AppointmentId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Gets an appointment with children
+        /// </summary>
+        /// <param name="id">Id of appointment to get</param>
+        /// <returns></returns>
+        public async Task<Appointment> GetFullAppointment(Guid id)
+        {
+            return await _dbContext.Appointments.Where(x => x.AppointmentId == id && x.AppointmentTaken == false).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Gets an appointment with children including those already taken
+        /// </summary>
+        /// <param name="id">Id of appointment to get</param>
+        /// <returns></returns>
+        public async Task<Appointment> GetFullAppointmentIncludeTaken(Guid id)
+        {
+            return await _dbContext.Appointments.Where(x => x.AppointmentId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Gets all appointments
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<Appointment>> GetAllAppointments()
+        {
+            return (await _dbContext.Appointments.Where(x => x.AppointmentTaken == false).ToListAsync()).AsEnumerable();
+        }
+
+        /// <summary>
+        /// Gets all appointments including the ones already taken
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<Appointment>> GetAllIncludeTaken()
+        {
+            return (await _dbContext.Appointments.ToListAsync()).AsEnumerable();
+        }
+
+        /// <summary>
+        /// Gets all appointments with all child nodes filled
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<Appointment>> GetAllFullyLoaded()
+        {
+            return (await _dbContext.Appointments.Where(x => x.AppointmentTaken == false).ToListAsync()).AsEnumerable();
+        }
+
+        /// <summary>
+        /// Gets all appointments including the ones already taken with all children filled 
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<Appointment>> GetAllFullyLoadedIncludeTaken()
+        {
+            return (await _dbContext.Appointments.ToListAsync()).AsEnumerable();
+        }
+
+       
+        /// <summary>
+        /// Marks an appointment taken
+        /// </summary>
+        /// <param name="markapt">markapt contains Id and Username of claimer</param>
+        /// <returns></returns>
+        public async Task<int> MarkAppointmentTaken(MarkAppointment markapt)
+        {
+            var appointment = _dbAppointmentSet.FirstOrDefault(x => x.AppointmentId == markapt.Id);
+            if (appointment != null)
+            {
+                appointment.AppointmentTaken = true;
+                appointment.ClaimedBy = markapt.UserName;
+            }
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Save an Appointment
+        /// </summary>
+        /// <param name="apt">Appointment</param>
+        /// <returns></returns>
+        public async Task<int> SaveAppointment(Appointment apt)
+        {
+            var getAppointment = await _dbContext.Appointments.Where(a => a.AppointmentId == apt.AppointmentId).FirstOrDefaultAsync();
+            if (getAppointment != null)
+                return 0;
+
+            return await AddAsync(apt);
+        
+        }
+    }
+}

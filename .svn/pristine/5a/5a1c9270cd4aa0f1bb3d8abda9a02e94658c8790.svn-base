@@ -1,0 +1,119 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Domain.Person;
+using UniversalWeather.CMS.API.Utilities.Extensions;
+using UniversalWeather.CMS.API.Application.Exceptions;
+using UniversalWeather.CMS.API.Application.Common;
+using System.Threading.Tasks;
+
+namespace UniversalWeather.CMS.API.Application.Service
+{
+    public class PersonService : BaseService, IPersonService
+    {
+        private readonly IPersonRepository _personRepository;
+
+        public PersonService(IPersonRepository repository)
+        {
+            _personRepository = repository;
+        }
+
+        /// <summary>
+        /// Gets a Person
+        /// </summary>
+        /// <param name="id">Id of Person to get</param>
+        /// <param name="fullyload">Fully load all children</param>
+        /// <returns>A Person</returns>
+        public async Task<Person> Get(Guid id, bool fullyload)
+        {
+            if (fullyload)            
+                return await _personRepository.GetFullPerson(id);     
+            else
+                return await  _personRepository.Get(id);
+        }
+
+        /// <summary>
+        /// Saves a person to the database
+        /// </summary>
+        /// <param name="person">A person to save</param>
+        public async Task<int> Add(Person person)
+        {
+            return await _personRepository.AddAsync(person);
+        }
+
+        /// <summary>
+        /// Deletes a person via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the Person</param>p
+        public async Task<int> Delete(Guid id)
+        {
+            return await _personRepository.Delete(id);
+        }
+
+        /// <summary>
+        /// Gets all the persons in the table
+        /// </summary>
+        /// <returns>A list of Person</returns>
+        public async Task<IQueryable<Person>> GetAll(bool fullyload)
+        {      
+            if (!fullyload)
+            return await _personRepository.GetAllAync();
+           else
+            return await _personRepository.GetAllFullyLoaded();   
+        }
+
+        /// <summary>
+        /// Updates a person
+        /// </summary>
+        /// <param name="persons">The persons to update</param>
+        public async Task<int> Update(Person person)
+        {
+            return await _personRepository.UpdateAsync(person);
+        }
+
+        #region Comments
+        /// <summary>
+        ///  Saves comment
+        /// </summary>
+        /// <param name="personComment"></param>
+        /// <returns></returns>
+        public async Task<int> SaveComment(PersonComment personComment)
+        {
+            return await _personRepository.SaveComment(personComment);
+        }
+
+        /// <summary>
+        ///  Updates comment
+        /// </summary>
+        /// <param name="personComment"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateComment(PersonComment personComment)
+        {
+            return await _personRepository.UpdateComment(personComment);
+        }
+
+        /// <summary>
+        /// Deletes comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteComment(Guid commentId)
+        {
+            return  await _personRepository.DeleteComment(commentId);
+        }
+
+        /// <summary>
+        ///  Get all comment
+        /// </summary>
+        /// <param name="personId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<PersonComment>> GetAllComments(Guid personId)
+        {
+            return  await _personRepository.GetAllComments(personId);
+        }
+        #endregion
+    }
+}

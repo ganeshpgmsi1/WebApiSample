@@ -1,0 +1,119 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Domain.Location;
+using UniversalWeather.CMS.API.Utilities.Extensions;
+using UniversalWeather.CMS.API.Application.Exceptions;
+using UniversalWeather.CMS.API.Application.Common;
+
+namespace UniversalWeather.CMS.API.Application.Service
+{
+    public class LocationService : BaseService, ILocationService
+    {
+        private readonly ILocationRepository _locationRepository;
+
+        public LocationService(ILocationRepository repository)
+        {
+            _locationRepository = repository;
+        }
+
+        /// <summary>
+        ///  Gets location via id
+        /// </summary>
+        /// <param name="id">The guid of the Location</param>
+        /// <returns></returns>
+        public async Task<Location> Get(Guid id, bool fullyload)
+        {
+            if (fullyload)
+                return await _locationRepository.GetFullLocation(id);
+            else
+                return await _locationRepository.Get(id);
+        }
+
+        /// <summary>
+        /// Saves a location to the database
+        /// </summary>
+        /// <param name="location">A location to save</param>
+        public async Task<int> Add(Location location)
+        {
+            return await _locationRepository.AddAsync(location);
+        }
+
+        /// <summary>
+        /// Deletes a location via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the Location</param>p
+        public async Task<int> Delete(Guid id)
+        {
+            return await _locationRepository.Delete(id);
+        }
+
+        /// <summary>
+        /// Gets all the locations in the table
+        /// </summary>
+        /// <returns>A list of location</returns>
+        public async Task<IQueryable<Location>> GetAll(bool fullyload)
+        {
+            if (!fullyload)
+                return await _locationRepository.GetAllAync();
+            else
+                return await _locationRepository.GetAllFullyLoaded();
+        }
+
+        /// <summary>
+        /// Updates a location
+        /// </summary>
+        /// <param name="location">The location to update</param>
+        public async Task<int> Update(Location location)
+        {
+            return await _locationRepository.UpdateAsync(location);
+        }
+
+        #region Comments
+
+        /// <summary>
+        /// Saves comment
+        /// </summary>
+        /// <param name="locationComment"></param>
+        /// <returns></returns>
+        public async Task<int> SaveComment(LocationComment locationComment)
+        {
+            return await _locationRepository.SaveComment(locationComment);
+        }
+
+        /// <summary>
+        /// Updates comment
+        /// </summary>
+        /// <param name="locationComment"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateComment(LocationComment locationComment)
+        {
+            return await _locationRepository.UpdateComment(locationComment);
+        }
+
+        /// <summary>
+        /// Deletes comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteComment(Guid commentId)
+        {
+            return await _locationRepository.DeleteComment(commentId);
+        }
+
+        /// <summary>
+        /// Gets all comments
+        /// </summary>
+        /// <param name="locationId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<LocationComment>> GetAllComments(Guid locationId)
+        {
+            return await _locationRepository.GetAllComments(locationId);
+        }
+        #endregion
+    }
+}

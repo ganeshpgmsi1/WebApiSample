@@ -1,0 +1,171 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Web.Http;
+using UniversalWeather.CMS.API.Domain.Post;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Infrastructure.Extensions;
+using UniversalWeather.CMS.API.Infrastructure.Attributes;
+using UniversalWeather.CMS.API.Infrastructure.Handlers;
+using UniversalWeather.CMS.API.Infrastructure;
+
+namespace UniversalWeather.CMS.API.Controllers
+{
+    /// <summary>
+    /// Endpoints to interact with posts and supporting objects
+    /// </summary>
+    public class PostController : ApiController
+    {
+        private readonly IPostService _postService;
+        private string newLocation = string.Empty;
+        /// <summary>
+        /// Create the post service
+        /// </summary>
+        /// <param name="service">Interface to the post service methods</param>
+        public PostController(IPostService service)
+        {
+            _postService = service;
+        }
+
+        /// <summary>
+        /// Gets a post by the unique identifier
+        /// </summary>
+        /// <param name="id">The unique identifier of the post</param>
+        /// <param name="blogId">The unique identifier of the blog</param>
+        /// <param name="fullyload">(Optional) Load all the related entities or not</param>
+        /// <returns>A complete post object</returns>
+        public async Task<IHttpActionResult> Get(Guid id, Guid blogId, bool fullyload = false)
+        {
+            var post = await _postService.GetPost(id, blogId, fullyload);
+
+            if (post == null)
+                return this.RecordNotFound(string.Format("Post not found for id: {0}", id));
+
+            return Ok(post);
+        }
+
+        /// <summary>
+        /// Gets all the posts. This call supports OData functionality
+        /// </summary>
+        /// <param name="includedDeleted">(Optional) Include deleted posts or not. Bool true or false</param>
+        /// <param name="blogId">(Optional) The unique identifier of the blog</param>
+        /// <param name="fullyload">(Optional) Load all the related entities or not</param>
+        /// <returns>A list of posts</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAll(Guid? blogId = null, bool fullyload = false, bool includedDeleted = false)
+        {
+            var posts = await _postService.GetAllPosts(blogId, fullyload, includedDeleted);
+
+            if (posts == null || posts.Count() == 0)
+                return this.RecordNotFound(string.Format("Post not found."));
+
+            return Ok(posts);
+        }
+
+        /// <summary>
+        /// Gets all the post in a certain category.
+        /// </summary>
+        /// <param name="category">The unique identifier of the category</param>
+        /// <param name="blogId">(Optional) The unique identifier of the blog</param>
+        /// <param name="includedDeleted">(Optional) Include deleted posts of not. Bool true or false</param>
+        /// <returns>A list of posts</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetPostsByCategory(Guid? blogId, string category, bool includedDeleted = false)
+        {
+            var posts = await _postService.GetPostsByCategory(category, blogId, includedDeleted);
+
+            if (posts == null || posts.Count() == 0)
+                return this.RecordNotFound(string.Format("Post not found."));
+
+            return Ok(posts);
+        }
+
+        /// <summary>
+        /// Gets all the posts with a certain tag.
+        /// </summary>
+        /// <param name="tag">The unique identifier of the tag</param>
+        /// <param name="blogId">(Optional) The unique identifier of the blog</param>
+        /// <param name="includedDeleted">(Optional) Include deleted posts of not. Bool true or false</param>
+        /// <returns></returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetPostsByTag(Guid? blogId, string tag, bool includedDeleted = false)
+        {
+            var posts = await _postService.GetPostsByTag(tag, blogId, includedDeleted);
+
+            if (posts == null || posts.Count() == 0)
+                return this.RecordNotFound(string.Format("Post not found."));
+
+            return Ok(posts);
+        }
+
+        /// <summary>
+        /// Gets posts for a given author. This call supports OData functionality.
+        /// </summary>
+        /// <param name="author">The author</param>
+        /// <param name="blogId">(Optional) The unique identifier of the blog</param>
+        /// <param name="includedDeleted">(Optional) Include deleted posts of not. Bool true or false</param>
+        /// <param name="fullyload">(Optional) Load all the related entities or not</param>
+        /// <returns>A list of posts</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetPostsByAuthor(string author, Guid? blogId, bool fullyload = false, bool includedDeleted = false)
+        {
+            var posts = await _postService.GetPostsByAuthor(author, blogId, fullyload, includedDeleted);
+
+            if (posts == null || posts.Count() == 0)
+                return this.RecordNotFound(string.Format("Post not found."));
+
+            return Ok(posts);
+        }
+
+        /// <summary>
+        /// This gets the deleted posts. This call supports OData functionality.
+        /// </summary>
+        /// <param name="blogId">(Optional) The unique identifier of the blog</param>
+        /// <returns>A list of deleted posts</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetDeletedPosts(Guid? blogId)
+        {
+            var posts = await _postService.GetDeletedPosts(blogId);
+
+            if (posts == null || posts.Count() == 0)
+                return this.RecordNotFound(string.Format("Deleted post not found."));
+
+            return Ok(posts);
+        }
+
+        /// <summary>
+        /// Gets a list of comments for a given post. This call supports OData functionality.
+        /// </summary>
+        /// <param name="id">The unique identifier of the post</param>
+        /// <param name="blogId">(Optional) The unique identifier of the blog</param>
+        /// <param name="includedDeleted">(Optional) Include deleted comments or not. Bool true or false</param>
+        /// <returns>A list of comments</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetComments(Guid id, Guid? blogId, bool includedDeleted = false)
+        {
+            var comments = await _postService.GetPostComments(id, blogId, includedDeleted);
+
+            if (comments == null || comments.Count() == 0)
+                return this.RecordNotFound(string.Format("Comments not found."));
+
+            return Ok(comments);
+        }
+
+        /// <summary>
+        /// Gets all the post categories. This call supports OData functionality.
+        /// </summary>
+        /// <param name="blogId">(Optional) The unique identifier of the blog</param>
+        /// <returns>A list of categories</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetCategories(Guid? blogId)
+        {
+            var categories = await _postService.GetCategories(blogId);
+
+            if (categories == null || categories.Count() == 0)
+                return this.RecordNotFound(string.Format("Categories not found."));
+
+            return Ok(categories);
+        }
+    }
+}

@@ -1,0 +1,32 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Catalog;
+using UniversalWeather.CMS.API.Domain.Common;
+using Newtonsoft.Json;
+
+namespace UniversalWeather.CMS.API.Domain.Comment
+{
+    public class BaseComment : IEntity
+    {
+        public Guid CommentID { get; set; }
+        public Guid ContainerID { get; set; }
+        public Guid ParentCommentID { get; set; }
+        public DateTime CommentDate { get; set; }
+        public string Author { get; set; }
+        public string Email { get; set; }
+        public string Website { get; set; }
+        public string CommentText { get; set; }
+        public string Country { get; set; }
+        public string Ip { get; set; }
+        public bool IsApproved { get; set; }
+        public string ModeratedBy { get; set; }
+        public string Avatar { get; set; }
+        public bool IsSpam { get; set; }
+        public bool IsDeleted { get; set; }
+        public string Language { get; set; }
+        public string BrowserHeaderInfo { get; set; }
+    }
+}

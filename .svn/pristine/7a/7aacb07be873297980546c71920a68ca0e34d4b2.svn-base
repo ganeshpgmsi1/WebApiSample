@@ -1,0 +1,41 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Person;
+
+namespace UniversalWeather.CMS.API.Data.Mapping
+{
+    /// <summary>
+    /// Custom mapping configuration
+    /// </summary>
+    public class PersonConfiguration : EntityTypeConfiguration<Person>
+    {
+        /// <summary>
+        /// Set mapping values on initialization
+        /// </summary>
+        public PersonConfiguration()
+        {
+            ToTable("Person");
+            HasKey(p => p.PersonId);
+            HasMany(p => p.Tags)
+                 .WithMany(t => t.Persons)
+                 .Map(mc =>
+                 {
+                     mc.ToTable("Person_Tag");
+                     mc.MapLeftKey("PersonId");
+                     mc.MapRightKey("TagId");
+                 });
+            HasMany(p => p.Contacts)
+                 .WithMany(t => t.Persons)
+                 .Map(mc =>
+                 {
+                     mc.ToTable("Person_Contact");
+                     mc.MapLeftKey("PersonId");
+                     mc.MapRightKey("ContactId");
+                 });
+        }
+    }
+}

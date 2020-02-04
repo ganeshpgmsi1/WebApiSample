@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Common;
+
+namespace UniversalWeather.CMS.API.Domain.Catalog
+{
+    /// <summary>
+    /// Represents a Products
+    /// </summary>
+    public class Catalog : IEntity
+    {
+
+    }
+}

@@ -1,0 +1,166 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using UniversalWeather.CMS.API.Domain.Entity;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Infrastructure.Extensions;
+using UniversalWeather.CMS.API.Infrastructure.Attributes;
+using UniversalWeather.CMS.API.Infrastructure.Handlers;
+using UniversalWeather.CMS.API.Infrastructure;
+
+namespace UniversalWeather.CMS.API.Controllers
+{
+    /// <summary>
+    /// This controller exposes endpoints to access the entity in the database
+    /// </summary>
+    public class EntityController : ApiController
+    {
+        private readonly IEntityService _entityService;
+        private string newLocation = string.Empty;
+        /// <summary>
+        /// Set the entity service
+        /// </summary>
+        /// <param name="service">The entity interface</param>
+        public EntityController(IEntityService service)
+        {
+            _entityService = service;
+        }
+
+        /// <summary>
+        /// This gets the Entity associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the Entity</param>
+        /// <param name="fullyload">Fully Load all child nodes</param>
+        /// <returns>A Entity to retrieve</returns>
+        public async Task<IHttpActionResult> Get(Guid id, bool fullyload = false)
+        {
+            var entity = await _entityService.GetEntity(id, fullyload);
+
+            if (entity == null)
+                return this.RecordNotFound(string.Format("Entity not found for id: {0}", id));
+
+            return Ok(entity);
+        }
+
+        /// <summary>
+        /// This gets all the Entitys in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of entitys</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAll(bool fullyload = false)
+        {
+            var entity = await _entityService.GetAll(fullyload);
+
+            if (entity == null || entity.Count() == 0)
+                return this.RecordNotFound(string.Format("Entities not found."));
+
+            return Ok(entity);
+        }
+
+        /// <summary>
+        /// This saves a Entity into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="entity">The Entity to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> Save([FromBody]Entity entity)
+        {
+            await _entityService.AddEntity(entity);
+            newLocation = Url.Link("DefaultApi", new { controller = "Entity", action = "get", id = entity.EntityId });
+
+            return Created(newLocation, string.Format("{0} created.", entity.Name));
+        }
+
+        /// <summary>
+        /// This deletes a Entity by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the entity</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> Delete(Guid id)
+        {
+            if (await _entityService.DeleteEntity(id) == 0)
+                return this.RecordNotFound(string.Format("Entity not found for id: {0}", id));
+
+            return Ok("Entity deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a entity from a complete entity object.  
+        /// </summary>
+        /// <param name="entity">The entity to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> Update([FromBody]Entity entity)
+        {
+            if (await _entityService.UpdateEntity(entity) == 0)
+
+                return this.RecordNotFound(string.Format("Entity not found."));
+
+            return Ok("Entity updated successfully.");
+        }
+
+        #region Comments
+
+
+        /// <summary>
+        /// This Add a Entity Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="entityComment"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveComment([FromBody]EntityComment entityComment)
+        {
+            await _entityService.SaveComment(entityComment);
+            newLocation = Url.Link("DefaultApi", new { controller = "Entity", action = "GetAllComments", id = entityComment.Entity.EntityId });
+            return Ok("Entity comment saved successfully!");
+        }
+
+        /// <summary>
+        /// This updates a Entity Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="entityComment"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateComment([FromBody]EntityComment entityComment)
+        {
+            if (await _entityService.UpdateComment(entityComment) == 0)
+                return this.RecordNotFound(string.Format("Entity comment not found."));
+
+            return Ok("Entity comment updated successfully.");
+        }
+
+        /// <summary>
+        /// This deletes a Entity Comment using specified CommentID
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteComment(Guid commentId)
+        {
+            if (await _entityService.DeleteComment(commentId) == 0)
+                return this.RecordNotFound(string.Format("Comment not found for id: {0}", commentId));
+
+            return Ok("Comment deleted successfully.");
+        }
+
+        /// <summary>
+        /// This method returns all Comments for supplied EntityId
+        /// </summary>
+        /// <param name="entityId"></param>
+        /// <returns></returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllComments(Guid entityId)
+        {
+            var comments = await _entityService.GetAllComments(entityId);
+
+            if (comments == null || comments.Count() == 0)
+                return this.RecordNotFound(string.Format("Comments not found for entityId: {0}", entityId));
+
+            return Ok(comments);
+        }
+
+        #endregion
+    }
+}

@@ -1,0 +1,43 @@
+﻿using UniversalWeather.CMS.API.Data.Repository;
+using UniversalWeather.CMS.API.Domain.BlogRollItem;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Data.Configuration;
+using UniversalWeather.CMS.API.Domain.Blog;
+using System.Data.Entity;
+using System.Threading.Tasks;
+using System.Linq;
+
+namespace UniversalWeather.CMS.API.Data.Repository
+{
+    public class BlogRollItemRepository : BaseRepository<BlogRollItem>, IBlogRollItemRepository
+    {
+        private IDbSet<BlogRollItem> _dbBlogRollItemSet;
+        public BlogRollItemRepository(DomainNameDbContext dataContexts)
+            : base(dataContexts)
+        {
+            _dbBlogRollItemSet = dataContexts.BlogRollItems;
+        }
+
+        public async Task<int> AddBlogRollItem(BlogRollItem blogRollItem)
+        {
+            var getBlogRollItems = await _dbContext.BlogRollItems.
+                                  Where(x => (x.BlogId == blogRollItem.BlogId && x.BlogRollId == blogRollItem.BlogRollId) ||
+                                      (x.BlogId == blogRollItem.BlogId) || (x.BlogRollId == blogRollItem.BlogRollId))
+                                  .FirstOrDefaultAsync();
+            
+            if (getBlogRollItems != null)
+            {
+                if (getBlogRollItems.BlogId == blogRollItem.BlogId && getBlogRollItems.BlogRollId == blogRollItem.BlogRollId)
+                    return 0;
+                if (getBlogRollItems.BlogId == blogRollItem.BlogId)
+                    return -1;
+                if (getBlogRollItems.BlogRollId == blogRollItem.BlogRollId)
+                    return -2;
+            }
+            else
+                return await AddAsync(blogRollItem);
+
+            return 0;
+        }
+    }
+}

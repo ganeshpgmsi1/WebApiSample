@@ -1,0 +1,17 @@
+﻿using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Page;
+
+namespace UniversalWeather.CMS.API.Application.Mapping
+{
+    public class PageCommentConfiguration : EntityTypeConfiguration<PageComment>
+    {
+        public PageCommentConfiguration()
+        {
+            ToTable("Page_Comment");
+            HasKey(k => k.CommentID);
+            HasRequired(b => b.Page)
+            .WithMany(i => i.Comments)
+            .HasForeignKey(b => b.ContainerID);
+        }
+    }
+}

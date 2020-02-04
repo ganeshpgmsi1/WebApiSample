@@ -1,0 +1,100 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using UniversalWeather.CMS.API.Domain.Appointment;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Infrastructure.Extensions;
+using UniversalWeather.CMS.API.Infrastructure.Attributes;
+using UniversalWeather.CMS.API.Infrastructure.Handlers;
+using UniversalWeather.CMS.API.Infrastructure;
+
+namespace UniversalWeather.CMS.API.Controllers
+{
+    /// <summary>
+    /// Endpoints to interact with appointment and supported objects
+    /// </summary>
+    public class AppointmentController : ApiController
+    {
+        private readonly IAppointmentService _appointmentService;
+        private string newLocation = string.Empty;
+        /// <summary>
+        /// Create the appointment service
+        /// </summary>
+        /// <param name="service">Interface to the post service methods</param>
+        public AppointmentController(IAppointmentService service)
+        {
+            _appointmentService = service;
+        }
+
+        /// <summary>
+        /// Get an appointment
+        /// </summary>
+        /// <param name="id">Id of appointment</param>
+        /// <param name="fullyLoad">Load all children</param>
+        /// <param name="includeTakenAppointments">Include appointments already taken</param>
+        /// <returns>The Appointment object</returns>
+        public async Task<IHttpActionResult> GetAppointment(Guid id, bool fullyLoad = false, bool includeTakenAppointments = false)
+        {
+            var appointment = await _appointmentService.GetAppointment(id, fullyLoad, includeTakenAppointments);
+
+            if (appointment == null)
+                return this.RecordNotFound(string.Format("Appointment not found for id: {0}", id));
+            return Ok(appointment);
+        }
+
+        /// <summary>
+        /// Gets all appointment
+        /// </summary>
+        /// <param name="fullyLoad">Load all children</param>
+        /// <param name="includeTakenAppointments">Include appointments already taken</param>
+        /// <returns>All appointments</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllAppointments(bool fullyLoad = false, bool includeTakenAppointments = false)
+        {
+            var appointment = await _appointmentService.GetAllAppointments(fullyLoad, includeTakenAppointments);
+
+            if (appointment == null || appointment.Count() == 0)
+                return this.RecordNotFound(string.Format("Appointments not found fullyLoad: {0} and includeTakenAppointments: {1}", fullyLoad.ToString(), includeTakenAppointments.ToString()));
+
+            return Ok(appointment);
+        }
+
+        /// <summary>
+        /// Marks an appointment as claimed
+        /// </summary>
+        /// <param name="markapt">Id of appointment to mark Claimed and Username of Claimer</param>
+        
+        [HttpPut]
+        public async Task<IHttpActionResult> MarkAppointmentTaken([FromBody]MarkAppointment markapt )
+        {
+            if (await _appointmentService.MarkAppointmentTaken(markapt) != 1)
+                return this.RecordNotFound(string.Format("Appointment not found for id:{0}", markapt.Id));
+
+            return Ok("Appointment marked successfully.");
+        }
+
+        /// <summary>
+        /// Appointment to be saved
+        /// </summary>
+        /// <param name="apt">Appointment details[string Name, string PhoneNumber, string Comment, string XML, string RequestedDateTime, string ClaimedBy, string Type, bool isCallNow]</param>
+        public async Task<IHttpActionResult> SaveAppointment([FromBody]Appointment apt)
+        {
+            if (apt.AppointmentId.Equals(Guid.Empty))
+            {
+                apt.AppointmentId = Guid.NewGuid();
+            }
+
+            //Appointment with same AppointmentID(Guid) exists
+            if (await _appointmentService.SaveAppointment(apt) == 0)
+                return Ok("Already Exist: Appointment Id="+ apt.AppointmentId);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Appointment", action = "GetAppointment", id = apt.AppointmentId });
+
+            return Created(newLocation, string.Format("{0} created.", apt.Name));
+        }
+    }
+}

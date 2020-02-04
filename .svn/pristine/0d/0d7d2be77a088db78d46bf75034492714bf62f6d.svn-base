@@ -1,0 +1,79 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Domain.Contact;
+using UniversalWeather.CMS.API.Application.Exceptions;
+using UniversalWeather.CMS.API.Utilities.Extensions;
+using UniversalWeather.CMS.API.Application.Common;
+using System.Threading.Tasks;
+
+namespace UniversalWeather.CMS.API.Application.Service
+{
+    public class ContactService : BaseService, IContactService
+    {
+        private readonly IContactRepository _contactRepository;
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="repository"></param>
+        public ContactService(IContactRepository repository)
+        {
+            _contactRepository = repository;
+        }
+
+        /// <summary>
+        /// Gets a Contact via id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Contact> GetContact(Guid id, bool fullyload)
+        {            
+            if (fullyload)
+                return await _contactRepository.GetFullContact(id);
+            else
+                return await _contactRepository.Get(id);            
+        }
+        /// <summary>
+        /// Adds a Contact
+        /// </summary>
+        /// <param name="contact"></param>
+        public async Task<int> AddContact(Contact contact)
+        {
+           return await _contactRepository.AddAsync(contact);
+        }
+
+        /// <summary>
+        /// Deletes a Contact
+        /// </summary>
+        /// <param name="id"></param>
+        public async Task<int> DeleteContact(Guid id)
+        {
+            return await _contactRepository.Delete(id);
+        }
+
+        /// <summary>
+        /// Updates a Contact
+        /// </summary>
+        /// <param name="contact"></param>
+        public async Task<int> UpdateContact(Contact contact)
+        {
+            return await _contactRepository.UpdateAsync(contact);
+        }
+
+        /// <summary>
+        /// Get All Contacts from the table
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Contact>> GetAll(bool fullyload)
+        {
+            if (fullyload)
+             return  await _contactRepository.GetAllFullyLoaded();
+           else
+               return await _contactRepository.GetAllAync();           
+        }
+    }
+}

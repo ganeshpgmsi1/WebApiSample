@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace UniversalWeather.CMS.API.Domain.Post
+{
+    /// <summary>
+    /// Represents a category which holds posts
+    /// </summary>
+    public class Category
+    {
+        public Guid CategoryId { get; set; }
+        public Guid BlogId { get; set; }
+        public string CategoryName { get; set; }
+        public string Description { get; set; }
+        public Guid? ParentId { get; set; }
+        [NotMapped]
+        public int TotalCount { get; set; }
+        [JsonIgnore]
+        public virtual ICollection<Post> Posts { get; private set; }
+    }
+}

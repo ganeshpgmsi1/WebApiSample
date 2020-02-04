@@ -1,0 +1,80 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Domain.Picture;
+using UniversalWeather.CMS.API.Utilities.Extensions;
+using UniversalWeather.CMS.API.Application.Exceptions;
+using UniversalWeather.CMS.API.Application.Common;
+using System.Threading.Tasks;
+
+namespace UniversalWeather.CMS.API.Application.Service
+{
+    public class PictureService : BaseService, IPictureService
+    {
+        private readonly IPictureRepository _pictureRepository;
+
+        public PictureService(IPictureRepository repository)
+        {
+            _pictureRepository = repository;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Picture> Get(Guid id)
+        {
+            return await _pictureRepository.Get(id);
+        }
+
+        /// <summary>
+        /// Gets a picture via a complete object
+        /// </summary>
+        /// <param name="picture">The picture object to get</param>
+        /// <returns>A picture</returns>
+        public async Task<Picture> Get(Picture picture)
+        {
+            return await _pictureRepository.Get(picture);
+        }
+
+        /// <summary>
+        /// Saves a picture to the database
+        /// </summary>
+        /// <param name="picture">A picture to save</param>
+        public async Task<int> Add(Picture picture)
+        {
+            return await _pictureRepository.AddAsync(picture);
+        }
+
+        /// <summary>
+        /// Deletes a picture via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the Picture</param>p
+        public async Task<int> Delete(Guid id)
+        {
+            return await _pictureRepository.Delete(id);
+        }
+
+        /// <summary>
+        /// Gets all the pictures in the table
+        /// </summary>
+        /// <returns>A list of picture</returns>
+        public async Task<IQueryable<Picture>> GetAll()
+        {
+            return await _pictureRepository.GetAllAync();
+        }
+
+        /// <summary>
+        /// Updates a picture
+        /// </summary>
+        /// <param name="picture">The picture to update</param>
+        public async Task<int> Update(Picture picture)
+        {
+            return await _pictureRepository.UpdateAsync(picture);
+        }
+    }
+}

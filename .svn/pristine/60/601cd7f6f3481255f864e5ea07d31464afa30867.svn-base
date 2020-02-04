@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Contact;
+
+namespace UniversalWeather.CMS.API.Domain.Repository
+{
+    public interface IContactRepository : IRepository<Contact.Contact>
+    {
+        Task<Contact.Contact> GetFullContact(Guid id);
+        Task<IQueryable<Contact.Contact>> GetAllFullyLoaded();
+    }
+}

@@ -1,0 +1,953 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Data.Configuration;
+using UniversalWeather.CMS.API.Data.Repository;
+using UniversalWeather.CMS.API.Domain.Catalog;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Utilities.Extensions;
+
+namespace UniversalWeather.CMS.API.Data.Repository
+{
+    /// <summary>
+    /// Methods for accessing the the entities associated with the post aggregate root
+    /// </summary>
+    public class CatalogRepository : BaseRepository<Catalog>, ICatalogRepository
+    {
+         /// <summary>
+        /// Get the dbcontext from the baserepository
+        /// </summary>
+        /// <param name="dataContexts">Context class to access the db objects</param>
+        public CatalogRepository(DomainNameDbContext dataContexts)
+            : base(dataContexts)
+        {
+        }
+
+        #region Product
+
+        /// <summary>
+        /// Get product list by given id
+        /// </summary>
+        /// <param name="id">id</param>
+        /// <returns></returns>
+        public async Task<Product> GetProduct(Guid id)
+        {
+            return await _dbContext.Products.Where(x => x.ProductId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Find product list by given product
+        /// </summary>
+        /// <param name="product">product</param>
+        /// <returns></returns>
+        public async Task<Product> GetProduct(Product product)
+        {
+            return await _dbContext.Products.Where(x => x.ProductId == product.ProductId).FirstOrDefaultAsync();
+        }
+
+        // If fullyload = true the product is load with all ProductPictures, ProductVariants and its images
+        /// <summary>
+        /// Get FullyLoadedProduct by given id
+        /// </summary>
+        /// <param name="id">id</param>
+        /// <returns></returns>
+        public async Task<Product> GetFullyLoadedProduct(Guid id)
+        {
+            var product = await (_dbContext.Products.Where(w => w.ProductId == id)
+                                 .Include(i => i.ProductVariants)
+                                 .Include(i => i.ProductVariants.Select(c => c.ProductVariantProductAttributeProductAttributeValues))
+                                 .Include(i => i.ProductVariants.Select(c => c.DefaultVariantPicture))
+                                 .Include(i => i.ProductVariants.Select(c => c.ProductVariantProductAttributeProductAttributeValues.Select(t => t.ProductAttributeValues)))
+                                 .Include(i => i.ProductPictures)
+                                 .Include(i => i.ProductPictures.Select(c => c.Picture))
+                                 .Include(i => i.ProductProductAttributes)
+                                 .Include(i => i.ProductProductAttributes.Select(c => c.ProductAttributes))
+                                 .Include(i => i.Tags)
+                                 .Include(i => i.Comments)).FirstOrDefaultAsync();
+            return product;
+        }
+
+
+        /// <summary>
+        /// Delete product by given product id
+        /// </summary>
+        /// <param name="id">id</param>
+        /// <returns></returns>
+        public async Task<int> DeleteProduct(Guid id)
+        {
+            var objToDelete = _dbContext.Products.Find(id);
+            _dbContext.Products.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves a product
+        /// </summary>
+        /// <param name="product">product</param>
+        /// <returns></returns>
+        public async Task<int> AddProduct(Product product)
+        {
+            _dbContext.Products.Add(product);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates a product 
+        /// </summary>
+        /// <param name="product">product</param>
+        /// <returns></returns>
+        public async Task<int> UpdateProduct(Product product)
+        {
+            var getProduct = await _dbContext.Products.Where(c => c.ProductId == product.ProductId).FirstOrDefaultAsync();
+            if (getProduct == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getProduct);
+            attachedEntry.CurrentValues.SetValues(product);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Get all products 
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Product>> GetAllProduct()
+        {
+            return (await _dbContext.Products.ToListAsync()).AsQueryable();
+        }
+
+        /// <summary>
+        /// Get all fullyLoadedProducts
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Product>> GetAllFullyLoadedProduct()
+        {
+            return (await (_dbContext.Products
+                .Include(i => i.ProductVariants)
+                .Include(i => i.ProductVariants.Select(c => c.ProductVariantProductAttributeProductAttributeValues))
+                .Include(i => i.ProductVariants.Select(c => c.DefaultVariantPicture))
+                .Include(i => i.ProductVariants.Select(c => c.ProductVariantProductAttributeProductAttributeValues.Select(t => t.ProductAttributeValues)))
+                .Include(i => i.ProductPictures)
+                .Include(i => i.ProductPictures.Select(c => c.Picture))
+                .Include(i => i.ProductProductAttributes)
+                .Include(i => i.ProductProductAttributes.Select(c => c.ProductAttributes))
+                .Include(i => i.Tags)
+                .Include(i => i.Comments)
+                .AsEnumerable()
+                    .Where(i => i.ProductVariants != null && i.ProductVariants.Count > 0)
+                    .Select(i =>
+                    {
+                        i.MaxPrice = i.ProductVariants.Max(p => p.Price);
+                        i.MinPrice = i.ProductVariants.Min(p => p.Price);
+                        return i;
+                    })
+                .AsQueryable()).ToListAsync()).AsQueryable();
+        }
+
+        #region Product Comments
+
+        /// <summary>
+        /// Saves a product's comment 
+        /// </summary>
+        /// <param name="productComment">productComment</param>
+        /// <returns></returns>
+        public async Task<int> SaveProductComment(ProductComment productComment)
+        {
+            _dbContext.ProductComments.Add(productComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates  product's comment
+        /// </summary>
+        /// <param name="productComment">productComment</param>
+        /// <returns></returns>
+        public async Task<int> UpdateProductComment(ProductComment productComment)
+        {
+            var getComment = await _dbContext.ProductComments.Where(c => c.CommentID == productComment.CommentID).FirstOrDefaultAsync();
+            if (getComment == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getComment);
+            attachedEntry.CurrentValues.SetValues(productComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Deletes product's comment
+        /// </summary>
+        /// <param name="commentId">commentId</param>
+        /// <returns></returns>
+        public async Task<int> DeleteProductComment(Guid commentId)
+        {
+            var objToDelete = _dbContext.ProductComments.Find(commentId);
+            _dbContext.ProductComments.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Get all product's comments
+        /// </summary>
+        /// <param name="productId">productId</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<ProductComment>> GetAllProductComments(Guid productId)
+        {
+            return (await _dbContext.ProductComments
+               .Where(x => x.ContainerID == productId).ToListAsync()).AsEnumerable();
+        }
+
+        #endregion
+        #endregion
+
+        #region Department
+
+        /// <summary>
+        /// Get a department
+        /// </summary>
+        /// <param name="id">id</param>
+        /// <returns></returns>
+        public async Task<Department> GetDepartment(Guid id)
+        {
+            return await _dbContext.Departments.Where(x => x.DepartmentId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get full department
+        /// </summary>
+        /// <param name="id">id</param>
+        /// <returns></returns>
+        public async Task<Department> GetFullDepartment(Guid id)
+        {
+            var departments = await (_dbContext.Departments.Where(w => w.DepartmentId == id)
+                                     .Include(i => i.DepartmentPictures)
+                                     .Include(x => x.Tags)
+                                     .Include(x => x.Comments)
+                                     .Include(i => i.DepartmentPictures.Select(c => c.Picture))).FirstOrDefaultAsync();
+
+            return departments;
+        }
+        /// <summary>
+        /// Deletes a Department
+        /// </summary>
+        /// <param name="id">id</param>
+        /// <returns></returns>
+        public async Task<int> DeleteDepartment(Guid id)
+        {
+            var objToDelete = _dbContext.Departments.Find(id);
+            _dbContext.Departments.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves a department
+        /// </summary>
+        /// <param name="department"></param>
+        /// <returns></returns>
+        public async Task<int> AddDepartment(Department department)
+        {
+            _dbContext.Departments.Add(department);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates a department
+        /// </summary>
+        /// <param name="department">department</param>
+        /// <returns></returns>
+        public async Task<int> UpdateDepartment(Department department)
+        {
+            var getDepartment = await _dbContext.Departments.Where(c => c.DepartmentId == department.DepartmentId).FirstOrDefaultAsync();
+            if (getDepartment == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getDepartment);
+            attachedEntry.CurrentValues.SetValues(department);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Get all department
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Department>> GetAllDepartment()
+        {
+            return (await _dbContext.Departments.ToListAsync()).AsQueryable();
+        }
+
+        /// <summary>
+        /// Get all department fully loaded
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Department>> GetAllDepartmentFullyLoaded()
+        {
+            return (await _dbContext.Departments
+                .Include(x => x.Tags)
+                .Include(x => x.Comments)
+                .ToListAsync()).AsQueryable();
+        }
+
+        #region Department Comments
+
+        /// <summary>
+        /// Saves a department comment
+        /// </summary>
+        /// <param name="departmentComment">departmentComment</param>
+        /// <returns></returns>
+        public async Task<int> SaveDepartmentComment(DepartmentComment departmentComment)
+        {
+            _dbContext.DepartmentComments.Add(departmentComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates a department comment
+        /// </summary>
+        /// <param name="departmentComment">departmentComment</param>
+        /// <returns></returns>
+        public async Task<int> UpdateDepartmentComment(DepartmentComment departmentComment)
+        {
+            var getComment = await _dbContext.DepartmentComments.Where(c => c.CommentID == departmentComment.CommentID).FirstOrDefaultAsync();
+            if (getComment == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getComment);
+            attachedEntry.CurrentValues.SetValues(departmentComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Deletes department comment
+        /// </summary>
+        /// <param name="commentId">commentId</param>
+        /// <returns></returns>
+        public async Task<int> DeleteDepartmentComment(Guid commentId)
+        {
+            var objToDelete = _dbContext.DepartmentComments.Find(commentId);
+            _dbContext.DepartmentComments.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Get all department comments
+        /// </summary>
+        /// <param name="productId">productId</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<DepartmentComment>> GetAllDepartmentComments(Guid productId)
+        {
+            return (await _dbContext.DepartmentComments
+               .Where(x => x.ContainerID == productId).ToListAsync()).AsEnumerable();
+        }
+
+        #endregion
+        #endregion
+
+        #region Manufacturer
+        /// <summary>
+        /// Get a manufacturer
+        /// </summary>
+        /// <param name="id">id</param>
+        /// <returns></returns>
+        public async Task<Manufacturer> GetManufacturer(Guid id)
+        {
+            return await _dbContext.Manufacturers.Where(x => x.ManufacturerId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get a manufacturer
+        /// </summary>
+        /// <param name="manufacturer">manufacturer</param>
+        /// <returns></returns>
+        public async Task<Manufacturer> GetManufacturer(Manufacturer manufacturer)
+        {
+            return await _dbContext.Manufacturers.Where(x => x.ManufacturerId == manufacturer.ManufacturerId).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get full manufacturer
+        /// </summary>
+        /// <param name="id">id</param>
+        /// <returns></returns>
+        public async Task<Manufacturer> GetFullManufacturer(Guid id)
+        {
+            var manufacturer = await (_dbContext.Manufacturers.Where(w => w.ManufacturerId == id)
+                                     .Include(i => i.ManufacturerPictures)
+                                     .Include(i => i.ManufacturerPictures.Select(c => c.Picture))).FirstOrDefaultAsync();
+
+            return manufacturer;
+        }
+
+        /// <summary>
+        /// Delete a manufacturer
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteManufacturer(Guid id)
+        {
+            var objToDelete = _dbContext.Manufacturers.Find(id);
+            _dbContext.Manufacturers.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves a manufacturer
+        /// </summary>
+        /// <param name="manufacturer">manufacturer</param>
+        /// <returns></returns>
+        public async Task<int> AddManufacturer(Manufacturer manufacturer)
+        {
+            _dbContext.Manufacturers.Add(manufacturer);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates a manufacturer
+        /// </summary>
+        /// <param name="manufacturer">manufacturer</param>
+        /// <returns></returns>
+        public async Task<int> UpdateManufacturer(Manufacturer manufacturer)
+        {
+            var getManufacturer = await _dbContext.Manufacturers.Where(c => c.ManufacturerId == manufacturer.ManufacturerId).FirstOrDefaultAsync();
+            if (getManufacturer == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getManufacturer);
+            attachedEntry.CurrentValues.SetValues(manufacturer);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Get all manufacturer including deleted
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Manufacturer>> GetAllManufacturerIncludingDeleted()
+        {
+            return (await _dbContext.Manufacturers.ToListAsync()).AsQueryable();
+        }
+
+        /// <summary>
+        /// Get all manufacturer excluding deleted
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Manufacturer>> GetAllManufacturerExcludingDeleted()
+        {
+            return (await _dbContext.Manufacturers.Where(x => x.IsDeleted == false).ToListAsync()).AsQueryable();
+        }
+
+        /// <summary>
+        /// Get all manufacturer with child including deleted
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Manufacturer>> GetAllManufacturerWithChildIncludingDeleted()
+        {
+            return (await _dbContext.Manufacturers
+                            .Include(x => x.ManufacturerPictures)
+                            .Include("ManufacturerPictures.Picture")
+                            .ToListAsync()).AsQueryable();
+        }
+
+        /// <summary>
+        /// Get all manufacturer with child excluding deleted
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Manufacturer>> GetAllManufacturerWithChildExcludingDeleted()
+        {
+            return (await _dbContext.Manufacturers.Where(x => x.IsDeleted == false)
+                            .Include(x => x.ManufacturerPictures)
+                            .Include("ManufacturerPictures.Picture")
+                            .ToListAsync()).AsQueryable();
+        }
+
+        #endregion
+
+        #region ProductAttribute
+
+        /// <summary>
+        /// Get a product attribute
+        /// </summary>
+        /// <param name="id">id</param>
+        /// <returns></returns>
+        public async Task<ProductAttribute> GetProductAttribute(Guid id)
+        {
+            return await _dbContext.ProductAttributes.Where(x => x.ProductAttributeId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get a product attribute
+        /// </summary>
+        /// <param name="productAttribute"></param>
+        /// <returns></returns>
+        public async Task<ProductAttribute> GetProductAttribute(ProductAttribute productAttribute)
+        {
+            return await _dbContext.ProductAttributes.Where(p => p.ProductAttributeId == productAttribute.ProductAttributeId).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Deletes a product attribute
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteProductAttribute(Guid id)
+        {
+            var objToDelete = _dbContext.ProductAttributes.Find(id);
+            _dbContext.ProductAttributes.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves a product attribute
+        /// </summary>
+        /// <param name="productAttribute">productAttribute</param>
+        /// <returns></returns>
+        public async Task<int> AddProductAttribute(ProductAttribute productAttribute)
+        {
+            _dbContext.ProductAttributes.Add(productAttribute);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates a product attribute
+        /// </summary>
+        /// <param name="productAttribute">productAttribute</param>
+        /// <returns></returns>
+        public async Task<int> UpdateProductAttribute(ProductAttribute productAttribute)
+        {
+            var getProductAttribute = await _dbContext.ProductAttributes.Where(c => c.ProductAttributeId == productAttribute.ProductAttributeId).FirstOrDefaultAsync();
+            if (getProductAttribute == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getProductAttribute);
+            attachedEntry.CurrentValues.SetValues(productAttribute);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Get all product attribute
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<ProductAttribute>> GetAllProductAttribute()
+        {
+            return (await _dbContext.ProductAttributes.ToListAsync()).AsQueryable();
+        }
+        #endregion
+
+        #region ProductAttributeValue
+
+        /// <summary>
+        /// Get a product attribute value
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ProductAttributeValue> GetProductAttributeValue(Guid id)
+        {
+            return await _dbContext.ProductAttributeValues.Where(x => x.ProductAttributeValueId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get product attribute value
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ProductAttributeValue> GetFullProductAttributeValue(Guid id)
+        {
+            var productattributevalues = await (_dbContext.ProductAttributeValues.Where(w => w.ProductAttributeValueId == id)
+                                    .Include(i => i.ProductAttributeValuePictures)
+                                    .Include(i => i.ProductAttributeValuePictures.Select(c => c.Picture))).FirstOrDefaultAsync();
+
+            return productattributevalues;
+        }
+
+        /// <summary>
+        /// Deletes product attribute value
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteProductAttributeValue(Guid id)
+        {
+            var objToDelete = _dbContext.ProductAttributeValues.Find(id);
+            _dbContext.ProductAttributeValues.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves product attribute value
+        /// </summary>
+        /// <param name="productAttributeValue"></param>
+        /// <returns></returns>
+        public async Task<int> AddProductAttributeValue(ProductAttributeValue productAttributeValue)
+        {
+            _dbContext.ProductAttributeValues.Add(productAttributeValue);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Update product attribute value
+        /// </summary>
+        /// <param name="productAttributeValue"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateProductAttributeValue(ProductAttributeValue productAttributeValue)
+        {
+            var getProductAttributeValue = await _dbContext.ProductAttributeValues.Where(c => c.ProductAttributeValueId == productAttributeValue.ProductAttributeValueId).FirstOrDefaultAsync();
+            if (getProductAttributeValue == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getProductAttributeValue);
+            attachedEntry.CurrentValues.SetValues(productAttributeValue);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// GetAll product attribute value
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<ProductAttributeValue>> GetAllProductAttributeValue()
+        {
+            return (await _dbContext.ProductAttributeValues.ToListAsync()).AsQueryable();
+        }
+
+        #endregion
+
+        #region ProductTemplate
+
+        /// <summary>
+        /// Get a product template
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ProductTemplate> GetProductTemplate(Guid id)
+        {
+            return await _dbContext.ProductTemplates.Where(x => x.ProductTemplateId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get product template
+        /// </summary>
+        /// <param name="productTemplate"></param>
+        /// <returns></returns>
+        public async Task<ProductTemplate> GetProductTemplate(ProductTemplate productTemplate)
+        {
+            return await _dbContext.ProductTemplates.Where(x => x.ProductTemplateId == productTemplate.ProductTemplateId).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Deletes product template
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteProductTemplate(Guid id)
+        {
+            var objToDelete = _dbContext.ProductTemplates.Find(id);
+            _dbContext.ProductTemplates.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves product template
+        /// </summary>
+        /// <param name="productTemplate"></param>
+        public async Task<int> AddProductTemplate(ProductTemplate productTemplate)
+        {
+            _dbContext.ProductTemplates.Add(productTemplate);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Update product template
+        /// </summary>
+        /// <param name="productTemplate"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateProductTemplate(ProductTemplate productTemplate)
+        {
+            var getProductTemplate = await _dbContext.ProductTemplates.Where(c => c.ProductTemplateId == productTemplate.ProductTemplateId).FirstOrDefaultAsync();
+            if (getProductTemplate == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getProductTemplate);
+            attachedEntry.CurrentValues.SetValues(productTemplate);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// GetAll product template
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<ProductTemplate>> GetAllProductTemplate()
+        {
+            return (await _dbContext.ProductTemplates.ToListAsync()).AsQueryable();
+        }
+        #endregion
+
+        #region ProductVariant
+
+        /// <summary>
+        /// Get product variant
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ProductVariant> GetProductVariant(Guid id)
+        {
+            return await _dbContext.ProductVariants.Where(x => x.ProductVariantId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get productvariant by id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ProductVariant> GetProductVariantFullyLoaded(Guid id)
+        {
+            return await _dbContext.ProductVariants
+                .Include(x => x.Tags)
+                .Include(x => x.Comments)
+                .FirstOrDefaultAsync(x => x.ProductVariantId == id);
+        }
+
+        /// <summary>
+        /// Deletes product variant
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteProductVariant(Guid id)
+        {
+            var objToDelete = _dbContext.ProductVariants.Find(id);
+            _dbContext.ProductVariants.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves product variant
+        /// </summary>
+        /// <param name="productVariant"></param>
+        public async Task<int> AddProductVariant(ProductVariant productVariant)
+        {
+            _dbContext.ProductVariants.Add(productVariant);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates product variant
+        /// </summary>
+        /// <param name="productVariant"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateProductVariant(ProductVariant productVariant)
+        {
+            var getProductVariant = await _dbContext.ProductVariants.Where(c => c.ProductVariantId == productVariant.ProductVariantId).FirstOrDefaultAsync();
+            if (getProductVariant == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getProductVariant);
+            attachedEntry.CurrentValues.SetValues(productVariant);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// GetAll product variant
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<ProductVariant>> GetAllProductVariant()
+        {
+            return (await _dbContext.ProductVariants.ToListAsync()).AsQueryable();
+        }
+
+        /// <summary>
+        /// GatAll product variant
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<ProductVariant>> GetAllProductVariantFullyLoaded()
+        {
+            return (await _dbContext.ProductVariants
+                .Include(x => x.Tags)
+                .Include(x => x.Comments).ToListAsync()).AsQueryable();
+        }
+
+        #region ProductVariant Comments
+
+        /// <summary>
+        /// Saves product variant comments
+        /// </summary>
+        /// <param name="productVariantComment"></param>
+        public async Task<int> SaveProductVariantComment(ProductVariantComment productVariantComment)
+        {
+            _dbContext.ProductVariantComments.Add(productVariantComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates product variant comment
+        /// </summary>
+        /// <param name="productVariantComment"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateProductVariantComment(ProductVariantComment productVariantComment)
+        {
+            var getComment = await _dbContext.ProductVariantComments.Where(c => c.CommentID == productVariantComment.CommentID).FirstOrDefaultAsync();
+            if (getComment == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getComment);
+            attachedEntry.CurrentValues.SetValues(productVariantComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Deletes product variant comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteProductVariantComment(Guid commentId)
+        {
+            var objToDelete = _dbContext.ProductVariantComments.Find(commentId);
+            _dbContext.ProductVariantComments.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// GeAll product variant comment
+        /// </summary>
+        /// <param name="productVariantId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<ProductVariantComment>> GetAllProductVariantComments(Guid productVariantId)
+        {
+            return (await _dbContext.ProductVariantComments
+               .Where(x => x.ContainerID == productVariantId).ToListAsync()).AsEnumerable();
+        }
+
+        #endregion
+        #endregion
+
+        #region DepartmentTemplate
+        public async Task<DepartmentTemplate> GetDepartmentTemplate(Guid id)
+        {
+            return await _dbContext.DepartmentTemplates.Where(x => x.DepartmentTemplateId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get a department template
+        /// </summary>
+        /// <param name="departmentTemplate"></param>
+        /// <returns></returns>
+        public async Task<DepartmentTemplate> GetDepartmentTemplate(DepartmentTemplate departmentTemplate)
+        {
+            return await _dbContext.DepartmentTemplates.Where(x => x.DepartmentTemplateId == departmentTemplate.DepartmentTemplateId).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Deletes department template
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteDepartmentTemplate(Guid id)
+        {
+            var objToDelete = _dbContext.DepartmentTemplates.Find(id);
+            _dbContext.DepartmentTemplates.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves department template
+        /// </summary>
+        /// <param name="departmentTemplate"></param>
+        public async Task<int> AddDepartmentTemplate(DepartmentTemplate departmentTemplate)
+        {
+            _dbContext.DepartmentTemplates.Add(departmentTemplate);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates department template
+        /// </summary>
+        /// <param name="departmentTemplate"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateDepartmentTemplate(DepartmentTemplate departmentTemplate)
+        {
+            var getDepartmentTemplate = await _dbContext.DepartmentTemplates.Where(c => c.DepartmentTemplateId == departmentTemplate.DepartmentTemplateId).FirstOrDefaultAsync();
+            if (getDepartmentTemplate == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getDepartmentTemplate);
+            attachedEntry.CurrentValues.SetValues(departmentTemplate);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// GetAll department template
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<DepartmentTemplate>> GetAllDepartmentTemplate()
+        {
+            return (await _dbContext.DepartmentTemplates.ToListAsync()).AsQueryable();
+        }
+        #endregion
+
+        #region ManufacturerTemplate
+
+        /// <summary>
+        /// Get a manufacturer template
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<ManufacturerTemplate> GetManufacturerTemplate(Guid id)
+        {
+            return await _dbContext.ManufacturerTemplates.Where(x => x.ManufacturerTemplateId == id).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Get a manufacturer template
+        /// </summary>
+        /// <param name="departmentTemplate"></param>
+        /// <returns></returns>
+        public async Task<ManufacturerTemplate> GetManufacturerTemplate(ManufacturerTemplate manufacturerTemplate)
+        {
+            return await _dbContext.ManufacturerTemplates.Where(x => x.ManufacturerTemplateId == manufacturerTemplate.ManufacturerTemplateId).FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// Deletes manufacturer template
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteManufacturerTemplate(Guid id)
+        {
+            var objToDelete = _dbContext.ManufacturerTemplates.Find(id);
+            _dbContext.ManufacturerTemplates.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Saves manufacturer template
+        /// </summary>
+        /// <param name="manufacturerTemplate"></param>
+        public async Task<int> AddManufacturerTemplate(ManufacturerTemplate manufacturerTemplate)
+        {
+            _dbContext.ManufacturerTemplates.Add(manufacturerTemplate);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates manufacturer template 
+        /// </summary>
+        /// <param name="manufacturerTemplate"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateManufacturerTemplate(ManufacturerTemplate manufacturerTemplate)
+        {
+            var getManufacturerTemplate = await _dbContext.ManufacturerTemplates.Where(c => c.ManufacturerTemplateId == manufacturerTemplate.ManufacturerTemplateId).FirstOrDefaultAsync();
+            if (getManufacturerTemplate == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getManufacturerTemplate);
+            attachedEntry.CurrentValues.SetValues(manufacturerTemplate);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// GetAll manufacturer template
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<ManufacturerTemplate>> GetAllManufacturerTemplate()
+        {
+            return (await _dbContext.ManufacturerTemplates.ToListAsync()).AsQueryable();
+        }
+        #endregion
+    }
+}

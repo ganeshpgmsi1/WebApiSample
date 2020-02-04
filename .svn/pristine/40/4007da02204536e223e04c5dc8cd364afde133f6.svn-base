@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Appointment;
+
+namespace UniversalWeather.CMS.API.Domain.Services
+{
+    public interface IAppointmentService
+    {
+        Task<Appointment.Appointment> GetAppointment(Guid id, bool fullyLoad, bool includeTakenAppointments);
+        Task<IEnumerable<Appointment.Appointment>> GetAllAppointments(bool fullyLoad, bool includeTakenAppointments);
+        Task<int> SaveAppointment(Appointment.Appointment apt);
+        Task<int> MarkAppointmentTaken(MarkAppointment markapt);
+    }
+}

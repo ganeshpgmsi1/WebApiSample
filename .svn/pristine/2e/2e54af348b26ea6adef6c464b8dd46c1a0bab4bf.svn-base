@@ -1,0 +1,71 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Catalog;
+
+namespace UniversalWeather.CMS.API.Data.Mapping
+{
+    /// <summary>
+    /// Custom mapping configuration
+    /// </summary>
+    public class DepartmentConfiguration : EntityTypeConfiguration<Department>
+    {
+        /// <summary>
+        /// Set mapping values on initialization
+        /// </summary>
+        public DepartmentConfiguration()
+        {
+            ToTable("Department");
+            HasKey(x => x.DepartmentId);
+            Property(x => x.DepartmentId).HasColumnName("DepartmentId").IsRequired();
+            Property(x => x.Name).HasColumnName("Name").IsRequired().HasMaxLength(400);
+            Property(x => x.Description).HasColumnName("Description").IsOptional();
+            Property(x => x.DepartmentTemplateId).HasColumnName("DepartmentTemplateId").IsRequired();
+            Property(x => x.MetaKeywords).HasColumnName("MetaKeywords").IsOptional().HasMaxLength(400);
+            Property(x => x.MetaDescription).HasColumnName("MetaDescription").IsOptional();
+            Property(x => x.MetaTitle).HasColumnName("MetaTitle").IsOptional().HasMaxLength(400);
+            Property(x => x.SeName).HasColumnName("SeName").IsOptional().HasMaxLength(200);
+            Property(x => x.ParentDepartmentId).HasColumnName("ParentDepartmentId").IsOptional();
+            Property(x => x.DefaultPictureId).HasColumnName("DefaultPictureId").IsOptional();
+            Property(x => x.PageSize).HasColumnName("PageSize").IsRequired();
+            Property(x => x.DisplayOrder).HasColumnName("DisplayOrder").IsRequired();
+            Property(x => x.IsPublished).HasColumnName("IsPublished").IsRequired();
+            Property(x => x.IsDeleted).HasColumnName("IsDeleted").IsRequired();
+            Property(x => x.DateCreated).HasColumnName("DateCreated").IsRequired();
+            Property(x => x.DateModified).HasColumnName("DateModified").IsRequired();
+            HasMany(x => x.Tags)
+                 .WithMany(t => t.Departments)
+                 .Map(mc =>
+                 {
+                     mc.ToTable("Department_Tag");
+                     mc.MapLeftKey("DepartmentId");
+                     mc.MapRightKey("TagId");
+                 });
+        }
+
+        //public DepartmentConfiguration()
+        //{
+        //    ToTable("Department");
+        //    HasKey(x => x.DepartmentId);
+        //   // Property(x => x.Id).HasColumnName("Id").IsRequired().HasDatabaseGeneratedOption(DatabaseGeneratedOption.Identity);
+        //    Property(x => x.DepartmentId).HasColumnName("DepartmentId").IsRequired();
+        //    Property(x => x.Name).HasColumnName("Name").IsRequired().HasMaxLength(400);
+        //    Property(x => x.Description).HasColumnName("Description").IsOptional();
+        //    Property(x => x.DepartmentTemplateId).HasColumnName("DepartmentTemplateId").IsRequired();
+        //    Property(x => x.MetaKeywords).HasColumnName("MetaKeywords").IsOptional().HasMaxLength(400);
+        //    Property(x => x.MetaDescription).HasColumnName("MetaDescription").IsOptional();
+        //    Property(x => x.MetaTitle).HasColumnName("MetaTitle").IsOptional().HasMaxLength(400);
+        //    Property(x => x.SeName).HasColumnName("SeName").IsOptional().HasMaxLength(200);
+        //    Property(x => x.ParentDepartmentId).HasColumnName("ParentDepartmentId").IsOptional();
+        //    Property(x => x.DefaultPictureId).HasColumnName("DefaultPictureId").IsOptional();
+        //    Property(x => x.PageSize).HasColumnName("PageSize").IsRequired();
+        //    Property(x => x.DisplayOrder).HasColumnName("DisplayOrder").IsRequired();
+        //    Property(x => x.IsPublished).HasColumnName("IsPublished").IsRequired();
+        //    Property(x => x.IsDeleted).HasColumnName("IsDeleted").IsRequired();
+        //    Property(x => x.DateCreated).HasColumnName("DateCreated").IsRequired();
+        //    Property(x => x.DateModified).HasColumnName("DateModified").IsRequired();
+        //}
+    }
+}

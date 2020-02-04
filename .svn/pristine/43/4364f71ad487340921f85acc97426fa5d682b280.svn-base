@@ -1,0 +1,393 @@
+﻿using System;
+using UniversalWeather.CMS.API.Application.Common;
+//using UniversalWeather.CMS.API.Cache;
+using UniversalWeather.CMS.API.Domain;
+using Newtonsoft.Json.Linq;
+using System.Net.Mail;
+using UniversalWeather.CMS.API.Domain.Survey;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Domain.Repository;
+using System.Linq;
+using UniversalWeather.CMS.API.Utilities.Extensions;
+using UniversalWeather.CMS.API.Application.Exceptions;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+namespace UniversalWeather.CMS.API.Application.Service
+{
+    /// <summary>
+    /// Service for the car controller to access, this is where any manipulation or validation is completed.
+    /// </summary>
+    public class SurveyService : BaseService, ISurveyService
+    {
+        private readonly ISurveyRepository _surveyRepository;
+
+        # region Survey
+
+        /// <summary>
+        /// Survey Service
+        /// </summary>
+        /// <param name="repository"></param>
+        /// <param name="cache"></param>
+        public SurveyService(ISurveyRepository repository)
+        {
+            if (repository == null)
+                throw new ArgumentNullException("Survey Repository cannot be null");
+            _surveyRepository = repository;
+        }
+
+        /// <summary>
+        /// Add a survey
+        /// </summary>
+        /// <param name="survey">The survey to save</param>
+        /// <returns></returns>
+        public async Task<int> SaveSurvey(Survey survey)
+        {
+            return await _surveyRepository.SaveSurvey(survey);
+        }
+
+        /// <summary>
+        /// Update a survey
+        /// </summary>
+        /// <param name="survey">The survey to update</param>
+        /// <returns></returns>
+        public async Task<int> UpdateSurvey(Survey survey)
+        {
+            return await _surveyRepository.UpdateAsync(survey);
+        }
+
+        /// <summary>
+        /// Delete a survey 
+        /// </summary>
+        /// <param name="SurveyId">The survey to delete</param>
+        /// <returns></returns>
+        public async Task<int> DeleteSurvey(Guid surveyId)
+        {
+            return await _surveyRepository.Delete(surveyId);
+        }
+
+        /// <summary>
+        /// Get Survey by providing SurveyId
+        /// </summary>
+        /// <param name="surveyId">Survey Id to return</param>
+        /// <param name="fullyload">Set to true to eager load all Child nodes</param>
+        /// <param name="excludeDeleted">Set to true to exclude deleted survey from response</param>
+        /// <returns>A survey</returns>
+        public async Task<Survey> GetSurvey(Guid surveyId, bool fullyload, bool excludeDeleted)
+        {
+            if (!fullyload)
+            {
+                if (!excludeDeleted)
+                {
+                    return await _surveyRepository.GetSurvey(surveyId);
+                }
+                return  await _surveyRepository.GetSurveyExcludeDeleted(surveyId);
+            }
+            else
+            {
+                if (!excludeDeleted)
+                {
+                    return  await _surveyRepository.GetSurveyFullyLoaded(surveyId);
+                }
+                return  await _surveyRepository.GetSurveyFullyLoadedExcludeDeleted(surveyId);
+            }
+            
+        }
+
+        /// <summary>
+        /// Get Survey by providing Id (SurveyNo)
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Survey> GetSurveyBySurveyNo(Guid id)
+        {
+            return await _surveyRepository.GetSurveyBySurveyNo(id);
+        }
+
+        /// <summary>
+        /// Gets all surveys
+        /// </summary>
+        /// <param name="fullyload">Fully load child nodes</param>
+        /// <param name="excludedeleted">Exclude deleted surveys</param>
+        /// <returns>Surveys</returns>
+        public async Task<IEnumerable<Survey>> GetAllSurveys(bool fullyload, bool excludedeleted)
+        {
+            IEnumerable<Survey> survey = null;
+            if (!fullyload)
+            {
+                if (!excludedeleted)
+                {
+                    survey = await _surveyRepository.GetAllSurveys();
+                }
+                else
+                {
+                    survey = await _surveyRepository.GetAllSurveysExcludeDeleted();
+                }
+            }
+            else
+            {
+                if (!excludedeleted)
+                {
+                    survey = await _surveyRepository.GetAllSurveysFullyLoaded();
+                }
+                else
+                {
+                    survey = await _surveyRepository.GetAllSurveysFullyLoadedExcludeDeleted();
+                }
+            }
+            return survey;
+        }
+
+        /// <summary>
+        /// Send Mail Message
+        /// </summary>
+        /// <param name="mailMessage"></param>
+        /// <returns></returns>
+        public string SendMailMessage(MailMessage mailMessage)
+        {
+            var sendMailMessage = _surveyRepository.SendMailMessage(mailMessage);
+            return sendMailMessage;
+        }
+
+        # endregion
+
+        #region Answer
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Answer> GetAnswer(Guid id)
+        {
+            return await _surveyRepository.GetAnswer(id);
+        }
+
+        /// <summary>
+        /// Gets a answer via a complete object
+        /// </summary>
+        /// <param name="answer">The answer object to get</param>
+        /// <returns>A answer</returns>
+        public async Task<Answer> GetAnswer(Answer answer)
+        {
+            return await _surveyRepository.GetAnswer(answer);
+        }
+
+        /// <summary>
+        /// Saves a answer to the database
+        /// </summary>
+        /// <param name="answer">A answer to save</param>
+        public async Task<int> AddAnswer(Answer answer)
+        {
+            return await _surveyRepository.AddAnswer(answer);
+        }
+
+        /// <summary>
+        /// Deletes a answer via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the answer</param>p
+        public async Task<int> DeleteAnswer(Guid id)
+        {
+            return await _surveyRepository.Delete(id);
+        }
+
+        /// <summary>
+        /// Gets all the answers in the table
+        /// </summary>
+        /// <returns>A list of Answer</returns>
+        public async Task<IQueryable<Answer>> GetAllAnswer()
+        {
+            return await _surveyRepository.GetAllAnswer();
+        }
+
+        /// <summary>
+        /// Updates a Answer
+        /// </summary>
+        /// <param name="answer">The answer to update</param>
+        public async Task<int> UpdateAnswer(Answer answer)
+        {
+            return await _surveyRepository.UpdateAnswer(answer);
+        }
+
+        #endregion
+
+        #region Question
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Question> GetQuestion(Guid id)
+        {
+            return await _surveyRepository.GetQuestion(id);
+        }
+
+        /// <summary>
+        /// Gets a question via a complete object
+        /// </summary>
+        /// <param name="question">The question object to get</param>
+        /// <returns>A question</returns>
+        public async Task<Question> GetQuestion(Question question)
+        {
+            return await _surveyRepository.GetQuestion(question);
+        }
+
+        /// <summary>
+        /// Saves a question to the database
+        /// </summary>
+        /// <param name="question">A question to save</param>
+        public async Task<int> AddQuestion(Question question)
+        {
+            return await _surveyRepository.AddQuestion(question);
+        }
+
+        /// <summary>
+        /// Deletes a question via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the question</param>p
+        public async Task<int> DeleteQuestion(Guid id)
+        {
+            return await _surveyRepository.DeleteQuestion(id);
+        }
+
+        /// <summary>
+        /// Gets all the questions in the table
+        /// </summary>
+        /// <param name="fullyLoad">Set to true to eager load QuestionOptions</param>
+        /// <param name="excludeDeleted">Set to false to exclude deleted </param>
+        /// <returns>A list of Questions</returns>
+        public async Task<IQueryable<Question>> GetAllQuestion(Guid? surveyId, bool fullyLoad, bool excludeDeleted)
+        {
+            IQueryable<Question> questions = null;
+
+            if (!surveyId.HasValue)
+            {
+                 if (!excludeDeleted && fullyLoad)
+                         return   questions = await _surveyRepository.GetAllQuestion();
+
+                 return questions = await _surveyRepository.GetAllQuestionExcludeDeleted();
+                
+            }
+           
+                if (!excludeDeleted && fullyLoad)
+                        return questions = await _surveyRepository.GetAllQuestionsFullyLoadedIncludeDeleted(surveyId);
+                 
+                return  questions = await _surveyRepository.GetAllQuestionsFullyLoadedExcludeDeleted(surveyId);
+           
+            
+            return questions.AsQueryable();
+        }
+
+        /// <summary>
+        /// Updates a Question
+        /// </summary>
+        /// <param name="question">The question to update</param>
+        public async Task<int> UpdateQuestion(Question question)
+        {
+            return await _surveyRepository.UpdateQuestion(question);
+        }
+
+        #endregion
+
+        #region QuestionOption
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<QuestionOption> GetQuestionOption(Guid id)
+        {
+            return await _surveyRepository.GetQuestionOption(id);
+        }
+
+        /// <summary>
+        /// Gets a questionOption via a complete object
+        /// </summary>
+        /// <param name="questionOption">The questionOption object to get</param>
+        /// <returns>A questionOption</returns>
+        public async Task<QuestionOption> GetQuestionOption(QuestionOption questionOption)
+        {
+            return await _surveyRepository.GetQuestionOption(questionOption);
+        }
+
+        /// <summary>
+        /// Saves a questionOption to the database
+        /// </summary>
+        /// <param name="questionOption">A questionOption to save</param>
+        public async Task<int> AddQuestionOption(QuestionOption questionOption)
+        {
+            return await _surveyRepository.AddQuestionOption(questionOption);
+        }
+
+        /// <summary>
+        /// Deletes a questionOption via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the QuestionOption</param>p
+        public async Task<int> DeleteQuestionOption(Guid id)
+        {
+            return await _surveyRepository.DeleteQuestionOption(id);
+        }
+
+        /// <summary>
+        /// Gets all the questionOptions in the table
+        /// </summary>
+        /// <returns>A list of QuestionOption</returns>
+        public async Task<IQueryable<QuestionOption>> GetAllQuestionOption()
+        {
+            return await _surveyRepository.GetAllQuestionOption();
+        }
+
+        /// <summary>
+        /// Updates a questionOption
+        /// </summary>
+        /// <param name="QuestionOption">The questionOption to update</param>
+        public async Task<int> UpdateQuestionOption(QuestionOption questionOption)
+        {
+            return await _surveyRepository.UpdateQuestionOption(questionOption);
+        }
+
+        #endregion
+        
+        #region ISurveyService Members
+
+        /// <summary>
+        /// Saves comment to database
+        /// </summary>
+        /// <param name="surveyComment"></param>
+        /// <returns></returns>
+        public async Task<int> SaveComment(SurveyComment surveyComment)
+        {
+            return await _surveyRepository.SaveComment(surveyComment);
+        }
+
+        /// <summary>
+        /// Updates comment
+        /// </summary>
+        /// <param name="surveyComment"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateComment(SurveyComment surveyComment)
+        {
+            return await _surveyRepository.UpdateComment(surveyComment);
+        }
+
+        /// <summary>
+        /// Deletes comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteComment(Guid commentId)
+        {
+            return await _surveyRepository.DeleteComment(commentId);
+        }
+
+        /// <summary>
+        /// Get all comment
+        /// </summary>
+        /// <param name="surveyId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<SurveyComment>> GetAllComments(Guid surveyId)
+        {
+            return await _surveyRepository.GetAllComments(surveyId);
+        }
+        #endregion
+    }
+}
+

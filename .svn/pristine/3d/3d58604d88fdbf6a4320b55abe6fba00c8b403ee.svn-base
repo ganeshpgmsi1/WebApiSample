@@ -1,0 +1,35 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
+
+namespace UniversalWeather.CMS.API.Domain.Post
+{
+    /// <summary>
+    /// Represents a post in the database
+    /// </summary>
+    public class Post
+    {
+        public Guid PostId { get; set; }
+        public Guid BlogId { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string PostContent { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+        public string Author { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsCommentEnabled { get; set; }
+        public int Raters { get; set; }
+        public float Rating { get; set; }
+        public string Slug { get; set; }
+        public bool IsDeleted { get; set; }
+        public virtual ICollection<Comment> Comments { get; set; }
+        public virtual ICollection<Tag.Tag> Tags { get; set; }
+        public virtual ICollection<Category> Categories { get; set; }
+        [NotMapped]
+        public virtual int TotalCount { get; set; }
+    }
+}

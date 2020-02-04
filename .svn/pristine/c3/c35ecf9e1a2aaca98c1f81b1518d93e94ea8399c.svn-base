@@ -1,0 +1,103 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using UniversalWeather.CMS.API.Domain.Picture;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Infrastructure.Extensions;
+using UniversalWeather.CMS.API.Infrastructure.Attributes;
+using UniversalWeather.CMS.API.Infrastructure.Handlers;
+using UniversalWeather.CMS.API.Infrastructure;
+
+namespace UniversalWeather.CMS.API.Controllers
+{
+    /// <summary>
+    /// This controller exposes endpoints to access the Pictures in the database
+    /// </summary>
+    public class PictureController : ApiController
+    {
+        private readonly IPictureService _pictureService;
+        private string newLocation = string.Empty;
+        /// <summary>
+        /// Set the Picture service
+        /// </summary>
+        /// <param name="service">The Picture interface</param>
+        public PictureController(IPictureService service)
+        {
+            _pictureService = service;
+        }
+
+        /// <summary>
+        /// This gets the Picture associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the Picture</param>
+        /// <returns>A Picture to retrieve</returns>
+        public async Task<IHttpActionResult> Get(Guid id)
+        {
+            var picture =await _pictureService.Get(id);
+
+            if (picture == null)
+                return this.RecordNotFound(string.Format("Picture not found for id: {0}", id));
+
+            return Ok(picture);
+        }
+
+        /// <summary>
+        /// This gets all the Pictures in a list. This call supports OData conventions.
+        /// </summary>
+        /// <returns>A list of Pictures</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAll()
+        {
+            var pictures = await _pictureService.GetAll();
+
+            if (pictures == null || pictures.Count() == 0)
+                return this.RecordNotFound(string.Format("Picture not found."));
+
+            return Ok(pictures);
+        }
+
+        /// <summary>
+        /// This saves a Picture into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="picture">The Picture to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> Save([FromBody]Picture picture)
+        {
+            await _pictureService.Add(picture);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Picture", action = "get", id = picture.PictureId });
+
+            return Created(newLocation, string.Format("{0} created.", picture.SeName));
+        }
+
+        /// <summary>
+        /// This deletes a Picture by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the Picture</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> Delete(Guid id)
+        {
+            if (await _pictureService.Delete(id) == 0)
+                return this.RecordNotFound(string.Format("Picture not found for id: {0}", id));
+
+            return Ok("Picture deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a Picture from a complete Picture object.  
+        /// </summary>
+        /// <param name="picture">The Picture to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> Update([FromBody]Picture picture)
+        {
+            if (await _pictureService.Update(picture) == 0)
+                return this.RecordNotFound(string.Format("Picture not found."));
+
+            return Ok("Picture updated successfully.");
+        }
+    }
+}

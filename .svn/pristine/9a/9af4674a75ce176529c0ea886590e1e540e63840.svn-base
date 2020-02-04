@@ -1,0 +1,33 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data.Entity.ModelConfiguration;
+
+using UniversalWeather.CMS.API.Domain.Post;
+
+namespace UniversalWeather.CMS.API.Mapping
+{
+    /// <summary>
+    /// Custom mapping configuration
+    /// </summary>
+    public class CategoryConfiguration : EntityTypeConfiguration<Category>
+    {
+        /// <summary>
+        /// Set mapping values on initialization
+        /// </summary>
+        public CategoryConfiguration()
+        {
+            ToTable("be_Categories");
+            HasKey(p => p.CategoryId);
+            Property(p => p.CategoryId).HasColumnName("CategoryID");
+            Property(p => p.BlogId).HasColumnName("BlogID");
+            HasMany(m => m.Posts).WithMany(m => m.Categories).Map(m =>
+            {
+                m.ToTable("be_PostCategory");
+                m.MapLeftKey("CategoryID");
+                m.MapRightKey("PostID");
+            });
+        }
+    }
+}

@@ -1,0 +1,24 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Catalog;
+
+namespace UniversalWeather.CMS.API.Application.Mapping
+{
+    /// <summary>
+    /// Custom mapping configuration
+    /// </summary>
+    class ProductVariantProductAttributeProductAttributeValueConfiguration : EntityTypeConfiguration<ProductVariantProductAttributeProductAttributeValue>
+    {
+        /// <summary>
+        /// Set mapping values on initialization
+        /// </summary>
+        public ProductVariantProductAttributeProductAttributeValueConfiguration()
+        {
+            ToTable("ProductVariant_ProductAttribute_ProductAttributeValue_Mapping");
+            HasKey(p => p.PV_PA_PAV_Id);
+        }
+    }
+}

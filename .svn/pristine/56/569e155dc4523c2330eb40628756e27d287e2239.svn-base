@@ -1,0 +1,26 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Common;
+
+namespace UniversalWeather.CMS.API.Domain.BlogRollItem
+{
+    /// <summary>
+    /// Represents a BlogRollItem
+    /// </summary>
+    public class BlogRollItem : IEntity
+    {
+        public Guid BlogId { get; set; }
+        public Guid BlogRollId { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string FeedUrl { get; set; }
+        public string Xfn { get; set; }
+        [Required(ErrorMessage="mandantory")]
+        public int SortIndex { get; set; }
+        [Required(ErrorMessage = "mandantory url")]
+        public string BlogUrl { get; set; }
+    }
+}

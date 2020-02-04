@@ -1,0 +1,15 @@
+﻿using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Infrastructure;
+
+namespace UniversalWeather.CMS.API.Domain.Repository
+{
+    public interface IApiLogRecords 
+    {
+        /// <summary>
+        /// Add a endpoint log to the logging database representing
+        /// a request and a response from the API endpoint.
+        /// </summary>
+        /// <param name="endpointLog"><see cref="EndpointLogItem"/></param>
+        void AddLog(EndpointLogItem endpointLogItem);
+    }
+}

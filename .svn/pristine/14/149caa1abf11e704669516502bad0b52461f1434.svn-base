@@ -1,0 +1,264 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Domain.Page;
+using UniversalWeather.CMS.API.Utilities.Extensions;
+using UniversalWeather.CMS.API.Application.Exceptions;
+using UniversalWeather.CMS.API.Domain.Comment;
+using UniversalWeather.CMS.API.Application.Common;
+using System.Threading.Tasks;
+
+namespace UniversalWeather.CMS.API.Application.Service
+{
+    public class PageService : BaseService, IPageService
+    {
+        private readonly IPageRepository _pageRepository;
+
+        public PageService(IPageRepository repository)
+        {
+            _pageRepository = repository;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Page> GetPage(Guid id, Guid blogId)
+        {
+            return await _pageRepository.GetPage(id, blogId);
+        }
+
+        /// <summary>
+        /// Gets a page via a complete object
+        /// </summary>
+        /// <param name="page">The page object to get</param>
+        /// <returns>A page</returns>
+        public async Task<Page> GetPage(Page page, Guid blogId)
+        {
+            return await _pageRepository.GetPage(page, blogId);
+        }
+
+        /// <summary>
+        /// Saves a page to the database
+        /// </summary>
+        /// <param name="page">A page to save</param>
+        public async Task<int> AddPage(Page page)
+        {
+            return await _pageRepository.AddPages(page);
+        }
+
+        /// <summary>
+        /// Deletes a page via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the page</param>
+        public async Task<int> DeletePage(Guid id, Guid blogId)
+        {
+            var page = (await GetPage(id, blogId));
+            if (page != null && page.PageId == id)
+                return await _pageRepository.Delete(id);
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Gets all the pages in the table
+        /// </summary>
+        /// <returns>A list of pages</returns>
+        public async Task<IQueryable<Page>> GetAll(Guid? blogId)
+        {
+            IEnumerable<Page> pages = new List<Page>();
+            if (blogId != null)
+            {
+                // pages = _pageRepository.GetAll().Where(b => b.BlogId == blogId);
+                pages = (await _pageRepository.GetAllAsync()).Where(b => b.BlogId == blogId);
+            }
+            else
+            {
+                pages = (await _pageRepository.GetAllAsync());
+            }
+
+            var pageresult = pages.Distinct();
+
+            return pageresult.AsQueryable();
+        }
+
+        /// <summary>
+        /// Gets the string for page breadcrumb. (Full path )
+        /// </summary>
+        /// <returns>A list of pages</returns>
+        public async Task<string> GetPageBreadCrumb(Guid pageID, Guid blogId)
+        {
+            List<Page> pages = (await _pageRepository.GetAllAsync());
+            Page currentPage = pages.Where(p => p.BlogId == blogId).SingleOrDefault(p => p.PageId == pageID);
+
+            var pageHierarchy = new List<Page>();
+            if (currentPage != null)
+            {
+                pageHierarchy.Add(currentPage);
+
+                for (int j = 0; j < pages.Count; j++)
+                {
+                    if (pageHierarchy[j] != null)
+                    {
+                        var parent = pageHierarchy[j].Parent;
+                        if (parent != null)
+                        {
+                            var pageId = pages[j].PageId;
+                            if (pageId == parent)
+                                pageHierarchy.Add(pages.ToList().Where(p => p.PageId == pageId).FirstOrDefault());
+                            else
+                                goto TheEnd;
+                        }
+                        else
+                            goto TheEnd;
+                    }
+                    else
+                        goto TheEnd;
+
+                }
+
+            }
+
+        TheEnd:
+            var breadcrumb = string.Join(" > ", pageHierarchy.Select(r => r.Title + "," + r.PageId + "," + r.Slug));
+            // var breadcrumb = string.Join(" > ", pageHierarchy.Select(r => r.Title));
+
+            return breadcrumb.ToString();
+
+
+            ////var pages = _pageRepository.GetAll().Where(b => b.BlogId == blogId);
+            //var pages = (await _pageRepository.GetAllAsync()).Where(b => b.BlogId == blogId);
+            //List<Page> pagesDistinct = new List<Page>();
+            //var index = pages.ToDictionary(r => r.PageId);
+            //Func<Page, IEnumerable<Page>> traverseUp = null;
+            //traverseUp = r =>
+            //{
+            //    var rs = new[] { r, };
+            //    if (r.Parent == Guid.Empty)
+            //    {
+            //        return rs;
+            //    }
+            //    else
+            //    {
+            //        return traverseUp(index[(Guid)r.PageId]).Concat(rs);
+            //    }
+            //};
+            //var current = from p in pages
+            //              where p.PageId == pageID
+            //              select p;
+            //Page currentPage = pages.ToList().SingleOrDefault(p => p.PageId == pageID);
+            //var breadcrumb = String.Join(" > ", traverseUp(currentPage).Select(r => r.Title + "," + r.PageId + "," + r.Slug));
+
+            //   return breadcrumb.ToString();
+        }
+
+
+        /// <summary>
+        /// Gets a list of pages based on whether they are published or not.
+        /// </summary>
+        /// <param name="published">Published or Unpublished pages</param>
+        /// <returns>A list of pages</returns>
+
+        //This Methed is not being used.
+        public IQueryable<Page> GetAllPublished(bool published)
+        {
+            var pages = _pageRepository.Find(o => o.IsPublished == published);
+            return pages.AsQueryable();
+        }
+
+        /// <summary>
+        /// Updates a page
+        /// </summary>
+        /// <param name="page">The page to update</param>
+        public async Task<int> UpdatePage(Page page)
+        {
+            int pages = 0;
+            pages = await _pageRepository.UpdateAsync(page);
+           
+            return pages;
+        }
+
+        public async Task<Page> GetPage(Guid id, Guid blogId, bool fullyload = false)
+        {
+            Page page = null;
+            if (!fullyload)
+            {
+                //return await _pageRepository.GetPage(id, blogId);
+                return await GetPage(id, blogId);
+            }
+            page = await _pageRepository.GetFullyLoadedPage(id, blogId);
+
+            return page;
+        }
+
+        public async Task<Page> GetPage(Page page, Guid blogId, bool fullyload = false)
+        {
+            Page getPage = null;
+            if (!fullyload)
+            {
+                getPage = await _pageRepository.GetPage(page, blogId);
+            }
+            getPage = await _pageRepository.GetFullyLoadedPage(page, blogId);
+            return getPage;
+        }
+
+        public async Task<IQueryable<Page>> GetAll(Guid? blogId, bool fullyload = false)
+        {
+            if (blogId.HasValue)
+            {
+                if (fullyload)
+                    return await _pageRepository.GetFullyLoadedPages(blogId.Value);
+
+                return await _pageRepository.GetPages(blogId.Value);
+            }
+            if (fullyload)
+                return (await _pageRepository.GetAllFullyLoaded()).AsQueryable();
+
+            return (await _pageRepository.GetAllAsync()).AsQueryable();
+        }
+
+        public async Task<IQueryable<Page>> GetAllPublished(bool published, bool fullyload = false)
+        {
+            IQueryable<Page> allPublished = null;
+
+            if (!fullyload)
+            {
+                //allPublished = _pageRepository.GetAll().Where(x => x.IsPublished == published).AsQueryable();
+                allPublished = (await _pageRepository.GetAllAsync()).Where(x => x.IsPublished == published).AsQueryable();
+            }
+            else
+                allPublished = (await _pageRepository.GetAllFullyLoaded()).Where(x => x.IsPublished == published).AsQueryable();
+
+
+            return allPublished;
+        }
+
+        #region Comments
+
+        public async Task<int> SaveComment(PageComment comment)
+        {
+            return await _pageRepository.SaveComment(comment);
+        }
+
+        public async Task<int> UpdateComment(PageComment comment)
+        {
+            return await _pageRepository.UpdateComment(comment);
+        }
+
+        public async Task<int> DeleteComment(Guid commentId)
+        {
+            return await _pageRepository.DeleteComment(commentId);
+        }
+
+        public async Task<IQueryable<PageComment>> GetAllComments(Guid pageId)
+        {
+            var allComments = await _pageRepository.GetAllComments(pageId);
+            return allComments;
+        }
+        #endregion
+    }
+}

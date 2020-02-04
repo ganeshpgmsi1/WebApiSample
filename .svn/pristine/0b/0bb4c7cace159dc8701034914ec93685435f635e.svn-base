@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Page;
+
+namespace UniversalWeather.CMS.API.Domain.Services
+{
+    public interface IPageService
+    {
+        Task<Page.Page> GetPage(Guid id, Guid blogId, bool fullyload = false);
+        Task<Page.Page> GetPage(Page.Page page, Guid blogId, bool fullyload = false);
+        Task<int> DeletePage(Guid id, Guid blogId);
+        Task<int> AddPage(Page.Page page);
+        Task<int> UpdatePage(Page.Page page, Guid pageId);
+        Task<IQueryable<Page.Page>> GetAll(Guid? blogId, bool fullyload = false);
+        Task<IQueryable<Page.Page>> GetAllPublished(bool published, bool fullyload = false);
+        Task<string> GetPageBreadCrumb(Guid id, Guid blogId);
+        Task<int> SaveComment(PageComment comment);
+        Task<int> UpdateComment(PageComment comment);
+        Task<int> DeleteComment(Guid commentId);
+        Task<IQueryable<PageComment>> GetAllComments(Guid pageId);
+    }
+}

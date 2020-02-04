@@ -1,0 +1,45 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Net.Mail;
+using UniversalWeather.CMS.API.Domain.Survey;
+using System.Threading.Tasks;
+
+namespace UniversalWeather.CMS.API.Domain.Services
+{
+    public interface ISurveyService
+    {
+
+        Task<int> SaveSurvey(Survey.Survey survey);
+        Task<Survey.Survey> GetSurvey(Guid surveyId, bool fullyload, bool excludeDeleted);
+        Task<IEnumerable<Survey.Survey>> GetAllSurveys(bool fullyload, bool excludeDeleted);
+        Task<Survey.Survey> GetSurveyBySurveyNo(Guid id);
+        string SendMailMessage(MailMessage mailMessage);
+
+        Task<Answer> GetAnswer(Guid id);
+        Task<int> DeleteAnswer(Guid id);
+        Task<int> AddAnswer(Answer answer);
+        Task<int> UpdateAnswer(Answer answer);
+        Task<IQueryable<Answer>> GetAllAnswer();
+
+        Task<Question> GetQuestion(Guid id);
+        Task<int> DeleteQuestion(Guid id);
+        Task<int> AddQuestion(Question question);
+        Task<int> UpdateQuestion(Question question);
+        Task<IQueryable<Question>> GetAllQuestion(bool fullyLoad, bool excludeDeleted);
+
+        Task<QuestionOption> GetQuestionOption(Guid id);
+        Task<int> DeleteQuestionOption(Guid id);
+        Task<int> AddQuestionOption(QuestionOption questionOption);
+        Task<int> UpdateQuestionOption(QuestionOption questionOption);
+        Task<IQueryable<QuestionOption>> GetAllQuestionOption();
+
+        #region Comments
+        Task<int> SaveComment(SurveyComment surveyComment);
+        Task<int> UpdateComment(SurveyComment surveyComment);
+        Task<int> DeleteComment(Guid commentId);
+        Task<IEnumerable<SurveyComment>> GetAllComments(Guid surveyId);
+        #endregion
+    }
+}

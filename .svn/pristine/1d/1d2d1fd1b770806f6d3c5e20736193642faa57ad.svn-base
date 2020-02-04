@@ -1,0 +1,20 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace UniversalWeather.CMS.API.Domain.Catalog
+{
+    public class ProductAttributeValuePicture
+    {
+        public Guid ProductAttributeValue_Picture_MappingId { get; set; }
+        public Guid ProductAttributeValueId { get; set; }
+        public Guid PictureId { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+        public virtual Picture.Picture Picture { get; set; }
+    }
+}

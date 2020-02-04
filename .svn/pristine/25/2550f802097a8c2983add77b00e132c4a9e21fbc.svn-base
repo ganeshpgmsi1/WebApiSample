@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity.ModelConfiguration;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Appointment;
+
+namespace UniversalWeather.CMS.API.Data.Mapping
+{
+    class AppointmentConfiguration : EntityTypeConfiguration<Appointment>
+    {
+        /// <summary>
+        /// Set mapping values on initialization
+        /// </summary>
+        public AppointmentConfiguration()
+        {
+            ToTable("Appointment");
+            HasKey(x => x.AppointmentId);
+        }
+    }
+}

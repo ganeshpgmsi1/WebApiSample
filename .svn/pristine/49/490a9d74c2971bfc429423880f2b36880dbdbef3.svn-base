@@ -1,0 +1,32 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Common;
+using Newtonsoft.Json;
+
+namespace UniversalWeather.CMS.API.Domain.Catalog
+{
+    /// <summary>
+    /// Represents a ProductAttributeValue
+    /// </summary>
+    public class ProductAttributeValue : IEntity
+    {
+        public Guid? ProductAttributeValueId { get; set; }
+        public Guid? ProductAttributeId { get; set; }
+        public string Name { get; set; }
+        public decimal PriceAdjustment { get; set; }
+        public decimal WeightAdjustment { get; set; }
+        public bool IsPreSelected { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+        public Guid DefaultPictureId { get; set; }
+        public string XMLData { get; set; }
+        public ProductAttribute ProductAttribute { get; set; }
+        [JsonIgnore]
+        public virtual ICollection<ProductAttributeValuePicture> ProductAttributeValuePictures { get; set; }
+    }
+}

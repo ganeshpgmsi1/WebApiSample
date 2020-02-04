@@ -1,0 +1,120 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Domain.Entity;
+using UniversalWeather.CMS.API.Utilities.Extensions;
+using UniversalWeather.CMS.API.Application.Exceptions;
+using UniversalWeather.CMS.API.Application.Common;
+using System.Threading.Tasks;
+
+namespace UniversalWeather.CMS.API.Application.Service
+{
+    public class EntityService : BaseService, IEntityService
+    {
+        private readonly IEntityRepository _entityRepository;
+
+        public EntityService(IEntityRepository repository)
+        {
+            _entityRepository = repository;
+        }
+
+        /// <summary>
+        /// Get entity via id
+        /// </summary>
+        /// <param name="id">The guid of the Entity</param>
+        /// <returns></returns>
+        public async Task<Entity> GetEntity(Guid id, bool fullyload)
+        {
+            if (fullyload)
+                return await _entityRepository.GetFullEntity(id);
+            else
+                return await _entityRepository.Get(id);
+        }
+
+        /// <summary>
+        /// Saves a entity to the database
+        /// </summary>
+        /// <param name="entity">A entity to save</param>
+        public async Task<int> AddEntity(Entity entity)
+        {
+            return await _entityRepository.AddAsync(entity);
+        }
+
+        /// <summary>
+        /// Deletes a entity via the unique guid
+        /// </summary>
+        /// <param name="id">The guid of the Entity</param>p
+        public async Task<int> DeleteEntity(Guid id)
+        {
+            return await _entityRepository.Delete(id);
+        }
+
+        /// <summary>
+        /// Gets all the entitys in the table
+        /// </summary>
+        /// <returns>A list of entity</returns>
+        public async Task<IQueryable<Entity>> GetAll(bool fullyload)
+        {
+            if (!fullyload)
+                return await _entityRepository.GetAllAync();
+            else
+                return await _entityRepository.GetAllFullyLoaded();
+        }
+
+        /// <summary>
+        /// Updates a entity
+        /// </summary>
+        /// <param name="entity">The entity to update</param>
+        public async Task<int> UpdateEntity(Entity entity)
+        {
+            return await _entityRepository.UpdateAsync(entity);
+        }
+
+        #region Comments
+
+        /// <summary>
+        /// Saves comment
+        /// </summary>
+        /// <param name="entityComment"></param>
+        /// <returns></returns>
+        public async Task<int> SaveComment(EntityComment entityComment)
+        {
+            return await _entityRepository.SaveComment(entityComment);
+        }
+
+        /// <summary>
+        /// Updates comment
+        /// </summary>
+        /// <param name="entityComment"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateComment(EntityComment entityComment)
+        {
+            return await _entityRepository.UpdateComment(entityComment);
+        }
+
+        /// <summary>
+        /// Deletes comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteComment(Guid commentId)
+        {
+            return await _entityRepository.DeleteComment(commentId);
+        }
+
+        /// <summary>
+        /// Get all comments
+        /// </summary>
+        /// <param name="entityId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<EntityComment>> GetAllComments(Guid entityId)
+        {
+            var allComments = await _entityRepository.GetAllComments(entityId);
+            return allComments;
+        }
+        #endregion
+    }
+}

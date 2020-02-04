@@ -1,0 +1,15 @@
+﻿using UniversalWeather.CMS.API.Data.Repository;
+using UniversalWeather.CMS.API.Domain.Picture;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Data.Configuration;
+
+namespace UniversalWeather.CMS.API.Data.Repository
+{
+    public class PictureRepository : BaseRepository<Picture>, IPictureRepository
+    {
+        public PictureRepository(DomainNameDbContext dataContexts)
+            : base(dataContexts)
+        {
+        }
+    }
+}

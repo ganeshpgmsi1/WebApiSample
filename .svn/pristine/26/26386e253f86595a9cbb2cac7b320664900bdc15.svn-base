@@ -1,0 +1,24 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Common;
+
+namespace UniversalWeather.CMS.API.Domain.Catalog
+{
+    /// <summary>
+    /// Represents a DepartmentTemplate
+    /// </summary>
+    public class DepartmentTemplate : IEntity
+    {
+        public Guid? DepartmentTemplateId { get; set; }
+        public string Name { get; set; }
+        public string ViewPath { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+        public ICollection<Department> Departments { get; set; }
+    }
+}

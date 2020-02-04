@@ -1,0 +1,22 @@
+﻿using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Survey;
+
+namespace UniversalWeather.CMS.API.Application.Mapping
+{
+    public class SurveyCommentConfiguration : EntityTypeConfiguration<SurveyComment>
+    {
+        /// <summary>
+        /// This class contains the Mapping Configuration for Survey Comment
+        /// </summary>
+        public SurveyCommentConfiguration()
+        {
+            ToTable("Survey_Comment");
+            HasKey(k => k.CommentID);
+            HasRequired(b => b.Survey)
+            .WithMany(i => i.Comments)
+            .HasForeignKey(b => b.ContainerID);
+        }
+    }
+}
+
+

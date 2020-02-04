@@ -1,0 +1,191 @@
+﻿using System;
+using System.Data.Entity;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Data.Configuration;
+using UniversalWeather.CMS.API.Data.Repository;
+using UniversalWeather.CMS.API.Domain.Comment;
+using UniversalWeather.CMS.API.Domain.Page;
+using UniversalWeather.CMS.API.Domain.Repository;
+
+namespace UniversalWeather.CMS.API.Data.Repository
+{
+    public class PageRepository : BaseRepository<Page>, IPageRepository
+    {
+         /// <summary>
+        /// Get the dbcontext from the baserepository
+        /// </summary>
+        /// <param name="dataContexts">Context class to access the db objects</param>
+        public PageRepository(DomainNameDbContext dataContexts)
+            : base(dataContexts)
+        {
+        }
+
+        /// <summary>
+        /// Gets a page object
+        /// </summary>
+        /// <param name="id">The unique identifier of the page</param>
+        /// <returns>A complete page object</returns>
+        public async Task<Page> GetPage(Guid id, Guid blogId)
+        {
+            var page =await _dbContext.Pages
+                .Where(w => w.PageId == id && w.BlogId == blogId).FirstOrDefaultAsync();
+            return page;
+        }
+
+
+        /// <summary>
+        /// Gets a page object
+        /// </summary>
+        /// <param name="id">The unique identifier of the page</param>
+        /// <returns>A complete page object</returns>
+        public async Task<IQueryable<Page>> GetPages(Guid blogId)
+        {
+            var page = (await _dbContext.Pages
+                .Where(w => w.BlogId == blogId).ToListAsync()).AsQueryable();
+            return page;
+        }
+
+
+        /// <summary>
+        /// Gets a page object
+        /// </summary>
+        /// <param name="id">The unique identifier of the page</param>
+        /// <returns>A complete page object</returns>
+        public async Task<IQueryable<Page>> GetFullyLoadedPages(Guid blogId)
+        {
+            var page = (await _dbContext.Pages
+                .Where(w => w.BlogId == blogId)
+                .Include(x => x.Tags)
+                .Include(x => x.Comments)
+                .ToListAsync()).AsQueryable();
+            return page;
+        }
+
+        /// <summary>
+        /// Gets a page object
+        /// </summary>
+        /// <param name="objpage">The object   of the page</param>
+        /// <returns>A complete page object</returns>
+        public async Task<Page> GetPage(Page objpage, Guid blogId)
+        {
+            var page = await (_dbContext.Pages.Where(w => w.PageId == objpage.PageId && w.BlogId == blogId)).FirstOrDefaultAsync();
+            return page;
+        }
+
+        /// <summary>
+        /// Gets a page along with all child properties
+        /// </summary>
+        /// <param name="id">Page Id</param>
+        /// <param name="blogId">Blog Id</param>
+        /// <returns>Page with all sub poperties populated</returns>
+        public async Task<Page> GetFullyLoadedPage(Guid id, Guid blogId)
+        {
+            var page = await (_dbContext.Pages
+                .Where(w => w.PageId == id && w.BlogId == blogId)
+                .Include(x => x.Tags)
+                .Include(x => x.Comments)).FirstOrDefaultAsync();
+            return page;
+        }
+
+        /// <summary>
+        /// Gets a page along with all child properties
+        /// </summary>
+        /// <param name="objpage">Page</param>
+        /// <param name="blogId">Blog Id</param>
+        /// <returns>Page with all sub poperties populated</returns>
+        public async Task<Page> GetFullyLoadedPage(Page objpage, Guid blogId)
+        {
+            var page = await (_dbContext.Pages
+                .Where(w => w.PageId == objpage.PageId && w.BlogId == blogId)
+                .Include(x => x.Tags)
+                .Include(x => x.Comments)).FirstOrDefaultAsync();
+            return page;
+        }
+
+        /// <summary>
+        /// Get All Pages fully loaded
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<Page>> GetAllFullyLoaded()
+        {
+            return (await _dbContext.Pages
+                            .Include(x => x.Tags)
+                            .Include(x => x.Comments).ToListAsync()).AsEnumerable();
+        }
+
+
+
+
+
+        #region IPageRepository Members
+
+        /// <summary>
+        /// Add a page
+        /// </summary>
+        /// <param name="page"></param>
+        /// <returns></returns>
+        public async Task<int> AddPages(Page page)
+        { 
+            var getpage=await _dbContext.Pages.Where(p=>p.PageId==page.PageId).FirstOrDefaultAsync();
+            if (getpage != null)
+                return 0;
+
+            return await AddAsync(page);
+
+        }
+        
+        
+        
+        /// <summary>
+        ///  Saves comment
+        /// </summary>
+        /// <param name="comment"></param>
+        /// <returns></returns>
+        public async Task<int> SaveComment(PageComment comment)
+        {
+            _dbContext.PageComments.Add(comment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates comment
+        /// </summary>
+        /// <param name="comment"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateComment(PageComment comment)
+        {
+            _dbContext.Entry(comment).State = EntityState.Modified;
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Deletes comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteComment(Guid commentId)
+        {
+            var objToDelete = _dbContext.PageComments.Find(commentId);
+            _dbContext.PageComments.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        #endregion
+
+        #region IPageRepository Members
+
+        /// <summary>
+        /// Gets all comment
+        /// </summary>
+        /// <param name="pageId"></param>
+        /// <returns></returns>
+        public async Task<IQueryable<PageComment>> GetAllComments(Guid pageId)
+        {
+            return (await _dbContext.PageComments.Where(x => x.ContainerID == pageId).ToListAsync()).AsQueryable();
+        }
+
+        #endregion
+    }
+}

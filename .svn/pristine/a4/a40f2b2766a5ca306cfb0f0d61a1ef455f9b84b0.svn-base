@@ -1,0 +1,69 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Common;
+using Newtonsoft.Json;
+
+namespace UniversalWeather.CMS.API.Domain.Catalog
+{
+    /// <summary>
+    /// Represents a ProductVariants
+    /// </summary>
+    public class ProductVariant
+    {
+        public Guid ProductVariantId { get; set; }
+        public Guid ProductId { get; set; }
+        public string Name { get; set; }
+        public string Sku { get; set; }
+        public string Description { get; set; }
+        public string ManufacturerPartNumber { get; set; }
+        public string Gtin { get; set; }
+        public bool IsShipEnabled { get; set; }
+        public bool IsFreeShipping { get; set; }
+        public decimal AdditionalShippingCharge { get; set; }
+        public bool IsTaxExempt { get; set; }
+        public int StockQuantity { get; set; }
+        public bool DisplayStockAvailability { get; set; }
+        public bool DisplayStockQuantity { get; set; }
+        public int MinStockQuantity { get; set; }
+        public Guid? LowStockActivityId { get; set; }
+        public int NotifyAdminForQuantityBelow { get; set; }
+        public Guid? BackorderModeId { get; set; }
+        public bool AllowBackInStockSubscriptions { get; set; }
+        public int OrderMinimumQuantity { get; set; }
+        public int OrderMaximumQuantity { get; set; }
+        public bool DisableBuyButton { get; set; }
+        public bool DisableWishlistButton { get; set; }
+        public bool CallForPrice { get; set; }
+        public decimal Price { get; set; }
+        public decimal OldPrice { get; set; }
+        public decimal ProductCost { get; set; }
+        public decimal SpecialPrice { get; set; }
+        public DateTime SpecialPriceStartDateTimeUtc { get; set; }
+        public DateTime SpecialPriceEndDateTimeUtc { get; set; }
+        public bool CustomerEntersPrice { get; set; }
+        public decimal MinimumCustomerEnteredPrice { get; set; }
+        public decimal MaximumCustomerEnteredPrice { get; set; }
+        public decimal Weight { get; set; }
+        public decimal Length { get; set; }
+        public decimal Width { get; set; }
+        public decimal Height { get; set; }
+        public Guid? DefaultPictureId { get; set; }
+        public Picture.Picture DefaultVariantPicture { get; set; }
+        public DateTime AvailableStartDateTimeUtc { get; set; }
+        public DateTime AvailableEndDateTimeUtc { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+
+        [JsonIgnore]
+        public virtual Product Product { get; private set; }
+        //[JsonIgnore]
+        public virtual ICollection<ProductVariantProductAttributeProductAttributeValue> ProductVariantProductAttributeProductAttributeValues { get; set; }
+        public virtual ICollection<Tag.Tag> Tags { get; set; }
+        public virtual ICollection<ProductVariantComment> Comments { get; set; }
+    }
+}

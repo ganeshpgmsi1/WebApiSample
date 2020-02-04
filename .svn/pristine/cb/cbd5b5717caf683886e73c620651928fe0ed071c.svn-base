@@ -1,0 +1,18 @@
+﻿using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Catalog;
+
+namespace UniversalWeather.CMS.API.Application.Mapping
+{
+    public class ProductVariantCommentConfiguration : EntityTypeConfiguration<ProductVariantComment>
+    {
+        public ProductVariantCommentConfiguration()
+        {
+            ToTable("ProductVariant_Comment");
+            HasKey(k => k.CommentID);
+            HasRequired(b => b.ProductVariant)
+            .WithMany(i => i.Comments)
+            .HasForeignKey(b => b.ContainerID);
+        }
+    }
+}
+

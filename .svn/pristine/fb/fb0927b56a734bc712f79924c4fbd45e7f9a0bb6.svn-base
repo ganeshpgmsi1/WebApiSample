@@ -1,0 +1,24 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Post;
+
+namespace UniversalWeather.CMS.API.Data.Mapping
+{
+    /// <summary>
+    /// Modify the way EF maps to the comment table
+    /// </summary>
+    public class CommentConfiguration : EntityTypeConfiguration<Comment>
+    {
+        public CommentConfiguration()
+        {
+            ToTable("be_PostComment");
+            HasKey(k => k.CommentId);
+            Property(p => p.CommentId).HasColumnName("PostCommentID");
+            Property(p => p.CommentText).HasColumnName("Comment");
+            Property(p => p.PostId).HasColumnName("PostID");
+        }
+    }
+}

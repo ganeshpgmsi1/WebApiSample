@@ -1,0 +1,35 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Catalog;
+using System.Data.Entity.ModelConfiguration;
+
+namespace UniversalWeather.CMS.API.Data.Mapping
+{
+    /// <summary>
+    /// Custom mapping configuration
+    /// </summary>
+    public class ProductVariantConfiguration : EntityTypeConfiguration<ProductVariant>
+    {
+        /// <summary>
+        /// Set mapping values on initialization
+        /// </summary>
+        public ProductVariantConfiguration()
+        {
+            ToTable("ProductVariant");
+            HasKey(p => p.ProductVariantId);
+            HasRequired(a => a.DefaultVariantPicture)
+                .WithMany()
+                .HasForeignKey(u => u.DefaultPictureId);
+            HasMany(p => p.Tags)
+                 .WithMany(t => t.ProductVariants)
+                 .Map(mc =>
+                 {
+                     mc.ToTable("ProductVariant_Tag");
+                     mc.MapLeftKey("ProductVariantId");
+                     mc.MapRightKey("TagId");
+                 });
+        }
+    }
+}

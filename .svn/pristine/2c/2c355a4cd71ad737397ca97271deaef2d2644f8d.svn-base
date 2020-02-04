@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Contact;
+
+namespace UniversalWeather.CMS.API.Domain.Services
+{
+    public interface IContactService
+    {
+        Task<Contact.Contact> GetContact(Guid id, bool fullyload);
+        Task<int> DeleteContact(Guid id);
+        Task<int> AddContact(Contact.Contact contact);
+        Task<int> UpdateContact(Contact.Contact contact);
+        Task<IQueryable<Contact.Contact>> GetAll(bool fullyload);
+    }
+}

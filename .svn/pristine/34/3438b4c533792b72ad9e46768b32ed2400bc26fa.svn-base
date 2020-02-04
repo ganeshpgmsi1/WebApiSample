@@ -1,0 +1,33 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Comment;
+using Newtonsoft.Json;
+using System.Xml.Serialization;
+
+namespace UniversalWeather.CMS.API.Domain.Survey
+{
+    public class SurveyComment
+    {
+        public System.Guid CommentID { get; set; }
+        public System.Guid SurveyId { get; set; }
+        public System.DateTime CommentDate { get; set; }
+        public string Author { get; set; }
+        public string Email { get; set; }
+        public string Website { get; set; }
+        public string CommentText { get; set; }
+        public string Country { get; set; }
+        public string Ip { get; set; }
+        public string ModeratedBy { get; set; }
+        public string Avatar { get; set; }
+        public bool IsSpam { get; set; }
+        public bool IsDeleted { get; set; }
+        public string Language { get; set; }
+        public string BrowserHeaderInfo { get; set; }
+        [XmlIgnore]
+        [JsonIgnore]
+        public Survey Survey { get; private set; }
+    }
+}

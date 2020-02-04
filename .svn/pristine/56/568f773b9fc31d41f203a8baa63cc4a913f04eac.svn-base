@@ -1,0 +1,83 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Data.Configuration;
+using UniversalWeather.CMS.API.Data.Repository;
+using UniversalWeather.CMS.API.Domain.Post;
+using UniversalWeather.CMS.API.Domain.Repository;
+
+namespace UniversalWeather.CMS.API.Data.Repository
+{
+    /// <summary>
+    /// Methods for accessing the the entities associated with the post aggregate root
+    /// </summary>
+    public class PostRepository : BaseRepository<Post>, IPostRepository
+    {
+        /// <summary>
+        /// Get the dbcontext from the baserepository
+        /// </summary>
+        /// <param name="dataContexts">Context class to access the db objects</param>
+        public PostRepository(DomainNameDbContext dataContexts)
+            : base(dataContexts)
+        {
+        }
+
+        /// <summary>
+        /// Gets a list of comments associated with a specific post.
+        /// </summary>
+        /// <param name="id">The unique identifier of the post</param>
+        /// <returns>A list of comments</returns>
+        public async Task<IEnumerable<Comment>> GetPostComments(Guid id, Guid? blogId)
+        {
+            if (blogId.HasValue)
+                return (await _dbContext.Comments.Where(w => w.PostId == id && w.BlogId == blogId).ToListAsync()).AsEnumerable();
+            return (await _dbContext.Comments.Where(w => w.PostId == id).ToListAsync()).AsEnumerable();
+        }
+
+        /// <summary>
+        /// Gets a post object along with the associated comments, categories and post tags.
+        /// </summary>
+        /// <param name="id">The unique identifier of the post</param>
+        /// <returns>A complete post object</returns>
+        public async Task<Post> GetFullPost(Guid id, Guid blogId)
+        {
+            var post = await (_dbContext.Posts.Where(w => w.PostId == id && w.BlogId == blogId)
+                .Include(p => p.Comments)
+                .Include(p => p.Tags)
+                .Include(p => p.Categories)).FirstOrDefaultAsync();
+            return post;
+        }
+
+        /// <summary>
+        /// Gets all the post categories
+        /// </summary>
+        /// <returns>A list of categories</returns>
+        public async Task<IEnumerable<Category>> GetCategories(Guid? blogId)
+        {
+            if (blogId.HasValue)
+                return (await _dbContext.Categories.Where(w => w.BlogId == blogId).ToListAsync()).AsEnumerable();
+            return (await _dbContext.Categories.ToListAsync()).AsEnumerable();
+        }
+
+        /// <summary>
+        /// Gets all the posts with their related entities post tag, comments and categories loaded
+        /// </summary>
+        /// <returns>A list of fully loaded objects</returns>
+        public async Task<IEnumerable<Post>> GetAllFullyLoaded(Guid? blogId)
+        {
+            if (blogId.HasValue)
+            {
+                return (await _dbContext.Posts.Where(w => w.BlogId == blogId)
+                    .Include(i => i.Comments)
+                    .Include(x => x.Tags)
+                    .Include(i => i.Categories).ToListAsync()).AsEnumerable();
+            }
+            return (await _dbContext.Posts
+                    .Include(i => i.Comments)
+                    .Include(x => x.Tags)
+                    .Include(i => i.Categories).ToListAsync()).AsEnumerable();
+        }
+    }
+}

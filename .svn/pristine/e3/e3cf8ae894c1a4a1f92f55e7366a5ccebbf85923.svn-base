@@ -1,0 +1,108 @@
+﻿using System;
+using System.Data.Entity;
+using System.Data.Entity.ModelConfiguration;
+using System.Linq;
+using System.Reflection;
+using UniversalWeather.CMS.API.Domain.Appointment;
+using UniversalWeather.CMS.API.Domain.Blog;
+using UniversalWeather.CMS.API.Domain.BlogRollItem;
+using UniversalWeather.CMS.API.Domain.Survey;
+using UniversalWeather.CMS.API.Domain.Post;
+using UniversalWeather.CMS.API.Domain.Comment;
+using UniversalWeather.CMS.API.Domain.Person;
+using UniversalWeather.CMS.API.Domain.Picture;
+using UniversalWeather.CMS.API.Domain.Page;
+using UniversalWeather.CMS.API.Domain.Location;
+using UniversalWeather.CMS.API.Domain.Catalog;
+using UniversalWeather.CMS.API.Domain.Contact;
+using UniversalWeather.CMS.API.Domain.Entity;
+
+namespace UniversalWeather.CMS.API.Data
+{
+    /// <summary>
+    /// Context class for accessing data using the underlying 
+    /// entity framework.
+    /// </summary>
+    public class DomainNameDbContext : DbContext, IDbContext
+    {
+        public DomainNameDbContext()
+            : base("CMS_APIs")
+        {
+            this.Configuration.LazyLoadingEnabled = false;
+            this.Configuration.ProxyCreationEnabled = false;
+        }
+
+        //Database Objects
+        public IDbSet<Appointment> Appointments { get; set; }
+        public IDbSet<Blog> Blogs { get; set; }
+        public IDbSet<BlogRollItem> BlogRollItems { get; set; }
+
+        public IDbSet<Survey> Surveys { get; set; }
+        public IDbSet<SurveyComment> SurveyComments { get; set; }
+        public IDbSet<Answer> Answers { get; set; }
+        public IDbSet<Question> Questions { get; set; }
+        public IDbSet<QuestionOption> QuestionOptions { get; set; }
+
+        public IDbSet<Post> Posts { get; set; }
+        public IDbSet<Comment> Comments { get; set; }
+        public IDbSet<Category> Categories { get; set; }
+
+        public IDbSet<Person> Persons { get; set; }
+        public IDbSet<PersonComment> PersonComments { get; set; }
+        public IDbSet<Picture> Pictures { get; set; }
+
+        public IDbSet<Page> Pages { get; set; }
+        public IDbSet<PageComment> PageComments { get; set; }
+        public IDbSet<Location> Locations { get; set; }
+        public IDbSet<LocationComment> LocationComments { get; set; }
+
+        public IDbSet<Product> Products { get; set; }
+        public IDbSet<ProductComment> ProductComments { get; set; }
+        public IDbSet<Contact> Contacts { get; set; }
+        public IDbSet<Department> Departments { get; set; }
+        public IDbSet<DepartmentPicture> DepartmentPictures { get; set; }
+        public IDbSet<DepartmentTemplate> DepartmentTemplates { get; set; }
+        public IDbSet<DepartmentComment> DepartmentComments { get; set; }
+        
+        public IDbSet<Manufacturer> Manufacturers { get; set; }
+        public IDbSet<ManufacturerPicture> ManufacturerPictures { get; set; }
+        public IDbSet<ManufacturerTemplate> ManufacturerTemplates { get; set; }
+        public IDbSet<ProductAttribute> ProductAttributes { get; set; }
+        public IDbSet<ProductAttributeValue> ProductAttributeValues { get; set; }
+        public IDbSet<ProductTemplate> ProductTemplates { get; set; }
+        public IDbSet<ProductVariant> ProductVariants { get; set; }
+        public IDbSet<ProductVariantComment> ProductVariantComments { get; set; }
+        public IDbSet<Entity> Entities { get; set; }
+        public IDbSet<EntityComment> EntityComments { get; set; }
+        public IDbSet<EntityPicture> EntityPictures { get; set; }
+
+        /// <summary>
+        /// Set the entity set
+        /// </summary>
+        /// <typeparam name="T">Type</typeparam>
+        /// <returns>DbSet of type T</returns>
+        public new IDbSet<T> Set<T>() where T : class
+        {
+            return base.Set<T>();
+        }
+
+        //Use the fluent API to customise the EF context. Add classes in the mapping directory deriving from
+        //entitytypeconfiguration<t> to customise how the domain objects are mapped to the db tables
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            Database.SetInitializer<DomainNameDbContext>(null);
+
+            var types = Assembly.GetExecutingAssembly().GetTypes()
+                    .Where(t => t.BaseType != null
+                    && t.BaseType.IsGenericType
+                    && t.BaseType.GetGenericTypeDefinition() == typeof(EntityTypeConfiguration<>));
+
+            foreach (var t in types)
+            {
+                dynamic config = Activator.CreateInstance(t);
+                modelBuilder.Configurations.Add(config);
+            }
+            base.OnModelCreating(modelBuilder);
+        }
+    } 
+}

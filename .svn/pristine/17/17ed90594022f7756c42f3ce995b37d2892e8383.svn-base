@@ -1,0 +1,171 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Web.Http;
+using UniversalWeather.CMS.API.Domain.Person;
+using UniversalWeather.CMS.API.Domain.Services;
+using UniversalWeather.CMS.API.Infrastructure.Extensions;
+using UniversalWeather.CMS.API.Infrastructure.Attributes;
+using UniversalWeather.CMS.API.Infrastructure.Handlers;
+using UniversalWeather.CMS.API.Infrastructure;
+
+namespace UniversalWeather.CMS.API.Controllers
+{
+    /// <summary>
+    /// This controller exposes endpoints to access the Persons in the database
+    /// </summary>
+    public class PersonController : ApiController
+    {
+        private readonly IPersonService _personService;
+        private string newLocation = string.Empty;
+        /// <summary>
+        /// Set the Person service
+        /// </summary>
+        /// <param name="service">The Person interface</param>
+        public PersonController(IPersonService service)
+        {
+            _personService = service;
+        }
+
+        /// <summary>
+        /// This gets the Person associated with the Guid parameters
+        /// </summary>
+        /// <param name="id">The guid representing the Person</param>
+        /// <param name="fullyload">Fully Load all child nodes</param>
+        /// <returns>A Person to retrieve</returns>
+        public async Task<IHttpActionResult> Get(Guid id, bool fullyload = false)
+        {
+            var person = await _personService.Get(id, fullyload);
+
+            if (person == null)
+            {
+                return this.RecordNotFound(string.Format("Person not found for id: {0}", id));
+            }
+            return Ok(person);
+        }
+
+        /// <summary>
+        /// This gets all the Persons in a list. This call supports OData conventions.
+        /// </summary>
+        /// <param name="fullyload">Fully Load all child nodes</param>
+        /// <returns>A list of Persons</returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAll(bool fullyload = false)
+        {
+            var persons = await _personService.GetAll(fullyload);
+
+            if (persons == null || persons.Count() == 0)
+                return this.RecordNotFound(string.Format("Persons not found."));
+
+            return Ok(persons);
+        }
+
+        /// <summary>
+        /// This saves a Person into the database. The content-type request body supports json and xml.
+        /// </summary>
+        /// <param name="person">The Person to save</param>
+        [HttpPost]
+        public async Task<IHttpActionResult> Save([FromBody]Person person)
+        {
+            if (await _personService.Add(person) > 0)
+            {
+                newLocation = Url.Link("DefaultApi", new { controller = "Person", action = "get", id = person.PersonId });
+
+                return Created(newLocation, string.Format("{0} created.", person.Name));
+            }
+            else
+                return Ok("Person not saved.");
+        }
+
+        /// <summary>
+        /// This deletes a Person by its existing Guid  
+        /// </summary>
+        /// <param name="id">The guid of the Person</param>
+        [HttpDelete]
+        public async Task<IHttpActionResult> Delete(Guid id)
+        {
+            if (await _personService.Delete(id) == 0)
+                return this.RecordNotFound(string.Format("Person not found for id: {0}", id));
+
+            return Ok("Person deleted successfully.");
+        }
+
+        /// <summary>
+        /// This updates a Person from a complete Person object.  
+        /// </summary>
+        /// <param name="person">The Person to update</param>
+        [HttpPut]
+        public async Task<IHttpActionResult> Update([FromBody]Person person)
+        {
+            if (await _personService.Update(person) == 0)
+                return this.RecordNotFound(string.Format("Person not found."));
+
+            return Ok("Person updated successfully.");
+        }
+
+        #region Comments
+
+        /// <summary>
+        /// This Add a Person Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="personComment"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public async Task<IHttpActionResult> SaveComment([FromBody]PersonComment personComment)
+        {
+            await _personService.SaveComment(personComment);
+
+            newLocation = Url.Link("DefaultApi", new { controller = "Person", action = "GetAllComments", personId = personComment.Person.PersonId });
+            return Created(newLocation, string.Format("{0} created.", personComment.CommentText));
+        }
+
+        /// <summary>
+        /// This updates a Person Comment from commplete Comments Object
+        /// </summary>
+        /// <param name="personComment"></param>
+        /// <returns></returns>
+        [HttpPut]
+        public async Task<IHttpActionResult> UpdateComment([FromBody]PersonComment personComment)
+        {
+            if (await _personService.UpdateComment(personComment) == 0)
+                return this.RecordNotFound(string.Format("Comment not found."));
+
+            return Ok("Comment updated successfully.");
+        }
+
+        /// <summary>
+        /// This deletes a Person Comment using specified CommentID
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IHttpActionResult> DeleteComment(Guid commentId)
+        {
+            if (await _personService.DeleteComment(commentId) == 0)
+                return this.RecordNotFound(string.Format("Comment not found for id: {0}", commentId));
+
+            return Ok("Comment deleted successfully.");
+        }
+
+        /// <summary>
+        /// This method returns all Comments for supplied PersonId
+        /// </summary>
+        /// <param name="personId"></param>
+        /// <returns></returns>
+        [Queryable]
+        public async Task<IHttpActionResult> GetAllComments(Guid personId)
+        {
+            var comments = await _personService.GetAllComments(personId);
+
+            if (comments == null || comments.Count() == 0)
+                return this.RecordNotFound(string.Format("Comments not found."));
+
+            return Ok(comments);
+        }
+
+        #endregion
+    }
+}

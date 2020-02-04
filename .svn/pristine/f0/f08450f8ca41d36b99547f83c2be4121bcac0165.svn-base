@@ -1,0 +1,177 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B34D9796-D828-4CEB-A27A-F686884C3941}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>UniversalWeather.CMS.API.Data</RootNamespace>
+    <AssemblyName>UniversalWeather.CMS.API.Data</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dapper">
+      <HintPath>..\..\packages\Dapper-Async.1.03\lib\net45\Dapper.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>..\..\packages\EntityFramework.6.0.2\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\..\packages\EntityFramework.6.0.2\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.Entity" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Configuration\DataContextCollection.cs" />
+    <Compile Include="Configuration\DomainNameDbContext.cs" />
+    <Compile Include="Connection.cs" />
+    <Compile Include="Mapping\CategoryConfiguration.cs" />
+    <Compile Include="Mapping\CommentConfiguration.cs" />
+    <Compile Include="Mapping\DepartmentConfiguration.cs" />
+    <Compile Include="DomainNameDbContext.cs" />
+    <Compile Include="IDbContext.cs" />
+    <Compile Include="Mapping\AnswerConfiguration.cs" />
+    <Compile Include="Mapping\AppointmentConfiguration.cs" />
+    <Compile Include="Mapping\BlogConfiguration.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Mapping\BlogRollItemConfiguration.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Mapping\ContactConfiguration.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Mapping\ContactTypeConfiguration.cs" />
+    <Compile Include="Mapping\DepartmentCommentConfiguration.cs" />
+    <Compile Include="Mapping\DepartmentPictureConfiguration.cs" />
+    <Compile Include="Mapping\DepartmentTemplateConfiguration.cs" />
+    <Compile Include="Mapping\EntityCommentConfiguration.cs" />
+    <Compile Include="Mapping\EntityConfiguration.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Mapping\EntityPictureConfiguration.cs" />
+    <Compile Include="Mapping\LocationCommentConfiguration.cs" />
+    <Compile Include="Mapping\PersonConfiguration.cs" />
+    <Compile Include="Mapping\ProductAttributeConfiguration.cs" />
+    <Compile Include="Mapping\ProductAttributeValueConfiguration.cs" />
+    <Compile Include="Mapping\ProductConfiguration.cs" />
+    <Compile Include="Mapping\ProductTemplateConfiguration.cs" />
+    <Compile Include="Mapping\ProductVariantConfiguration.cs" />
+    <Compile Include="Mapping\TagConfiguration.cs" />
+    <Compile Include="Mapping\LocationConfiguration.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Mapping\LocationPictureConfiguration.cs" />
+    <Compile Include="Mapping\ManufacturerConfiguration.cs" />
+    <Compile Include="Mapping\ManufacturerPictureConfiguration.cs" />
+    <Compile Include="Mapping\ManufacturerTemplateConfiguration.cs" />
+    <Compile Include="Mapping\PageCommentConfiguration.cs" />
+    <Compile Include="Mapping\PageConfiguration.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Mapping\PersonCommentConfiguration.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Mapping\PersonPictureConfiguration.cs" />
+    <Compile Include="Mapping\PictureConfiguration.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Mapping\PostConfiguration.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Mapping\ProductAttributeValuePictureConfiguration.cs" />
+    <Compile Include="Mapping\ProductCommentConfiguration.cs" />
+    <Compile Include="Mapping\ProductPictureConfiguration.cs" />
+    <Compile Include="Mapping\ProductProductAttributeConfiguration.cs" />
+    <Compile Include="Mapping\ProductVariantCommentConfiguration.cs" />
+    <Compile Include="Mapping\ProductVariantProductAttributeProductAttributeValueConfiguration.cs" />
+    <Compile Include="Mapping\QuestionConfiguration.cs" />
+    <Compile Include="Mapping\QuestionOptionConfiguration.cs" />
+    <Compile Include="Mapping\SurveyCommentConfiguration.cs" />
+    <Compile Include="Mapping\SurveyConfiguration.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repository\ApiLogRecords.cs" />
+    <Compile Include="Repository\ApiUserRecords.cs" />
+    <Compile Include="Repository\AppointmentRepository.cs" />
+    <Compile Include="Repository\BaseRepository.cs" />
+    <Compile Include="Repository\BlogRepository.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Repository\BlogRollItemRepository.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Repository\CatalogRepository.cs" />
+    <Compile Include="Repository\ContactRepository.cs" />
+    <Compile Include="Repository\EntityRepository.cs" />
+    <Compile Include="Repository\LocationRepository.cs" />
+    <Compile Include="Repository\PageRepository.cs" />
+    <Compile Include="Repository\PersonRepository.cs" />
+    <Compile Include="Repository\PictureRepository.cs" />
+    <Compile Include="Repository\PostRepository.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Repository\SurveyRepository.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Mapping\Dapper\" />
+    <Folder Include="Mapping\EF\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\UniversalWeather.CMS.API.Domain\UniversalWeather.CMS.API.Domain.csproj">
+      <Project>{4dc91380-2557-4e11-9c52-f8360da01933}</Project>
+      <Name>UniversalWeather.CMS.API.Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\UniversalWeather.CMS.API.Utilities\UniversalWeather.CMS.API.Utilities.csproj">
+      <Project>{2ea8d68c-f08f-4015-b653-82d2e8916baf}</Project>
+      <Name>UniversalWeather.CMS.API.Utilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

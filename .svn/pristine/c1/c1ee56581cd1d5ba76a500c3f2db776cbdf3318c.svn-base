@@ -1,0 +1,31 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Entity;
+
+namespace UniversalWeather.CMS.API.Application.Mapping
+{
+    /// <summary>
+    /// Custom mapping configuration
+    /// </summary>
+    public class EntityPictureConfiguration : EntityTypeConfiguration<EntityPicture>
+    {
+        /// <summary>
+        /// Set mapping values on initialization
+        /// </summary> 
+        public EntityPictureConfiguration()
+        {
+			ToTable("Entity_Picture_Mapping");
+            HasKey(p => p.Entity_Picture_MappingId);
+            //HasRequired(a => a.Product)
+            //  .WithMany()
+            //  .HasForeignKey(u => u.ProductId);
+            HasRequired(a => a.Picture)
+              .WithMany()
+              .HasForeignKey(u => u.PictureId);
+        }
+    }
+}
+

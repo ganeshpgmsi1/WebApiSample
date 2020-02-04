@@ -1,0 +1,23 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using UniversalWeather.CMS.API.Domain.Post;
+
+
+namespace UniversalWeather.CMS.API.Domain.Services
+{
+    public interface IPostService
+    {
+        Task<Post.Post> GetPost(Guid id, Guid blogId, bool fullyload);
+        Task<IQueryable<Post.Post>> GetAllPosts(Guid? blogId, bool fullyload, bool includeDeleted);
+        Task<IQueryable<Post.Comment>> GetPostComments(Guid id, Guid? blogId, bool includeDeleted);
+        Task<IQueryable<Post.Post>> GetPostsByCategory(string category, Guid? blogId, bool includeDeleted);
+        Task<IQueryable<Post.Post>> GetPostsByTag(string tag, Guid? blogId, bool includeDeleted);
+        Task<IQueryable<Post.Post>> GetPostsByAuthor(string author, Guid? blogId, bool fullyload, bool includeDeleted);
+        // IQueryable<Post.Post> GetPostsByPublishState(bool published, Guid? blogId, bool fullyload, bool includeDeleted);
+        Task<IQueryable<Post.Post>> GetDeletedPosts(Guid? blogId);
+        Task<IQueryable<Category>> GetCategories(Guid? blogId);
+    }
+}

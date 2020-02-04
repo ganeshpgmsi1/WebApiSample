@@ -1,0 +1,21 @@
+﻿using System;
+
+namespace UniversalWeather.CMS.API.Domain.Entity
+{
+    /// <summary>
+    /// Entity Picture
+    /// </summary>
+    public class EntityPicture
+    {
+        public Guid Entity_Picture_MappingId { get; set; }
+        public Guid EntityId { get; set; }
+        public Guid PictureId { get; set; }
+        public int DisplayOrder { get; set; }
+        public bool IsPublished { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime DateCreated { get; set; }
+        public DateTime DateModified { get; set; }
+        public virtual Picture.Picture Picture { get; set; }
+    }
+}
+

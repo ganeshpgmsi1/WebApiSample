@@ -1,0 +1,29 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Data.Entity.ModelConfiguration;
+using UniversalWeather.CMS.API.Domain.Post;
+
+namespace UniversalWeather.CMS.API.Data.Mapping
+{
+    /// <summary>
+    /// Modifys the model binding between EF and the Post table
+    /// </summary>
+    public class PostConfiguration : EntityTypeConfiguration<Post>
+    {
+        public PostConfiguration()
+        {
+            ToTable("be_Posts");
+            HasKey(p => p.PostId); 
+            HasMany(p => p.Tags)
+                 .WithMany(t => t.Posts)
+                 .Map(mc =>
+                 {
+                     mc.ToTable("Post_Tag");
+                     mc.MapLeftKey("PostId");
+                     mc.MapRightKey("TagId");
+                 });
+        }
+    }
+}

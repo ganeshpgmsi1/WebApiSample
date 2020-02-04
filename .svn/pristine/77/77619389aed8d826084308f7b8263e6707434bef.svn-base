@@ -1,0 +1,110 @@
+﻿using UniversalWeather.CMS.API.Data.Repository;
+using UniversalWeather.CMS.API.Domain.Location;
+using UniversalWeather.CMS.API.Domain.Repository;
+using UniversalWeather.CMS.API.Data.Configuration;
+using System;
+using System.Linq;
+using System.Data.Entity;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+
+namespace UniversalWeather.CMS.API.Data.Repository
+{
+    public class LocationRepository : BaseRepository<Location>, ILocationRepository
+    {
+        /// <summary>
+        /// Location Repository
+        /// </summary>
+        /// <param name="dataContexts">Context class to access the db objects</param>
+        public LocationRepository(DomainNameDbContext dataContexts)
+            : base(dataContexts)
+        {
+        }
+
+        /// <summary>
+        /// Get Full Location
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<Location> GetFullLocation(Guid id)
+        {
+            var location = await (_dbContext.Locations.Where(w => w.LocationId == id)
+                .Include(p => p.LocationPictures)
+                .Include(p => p.Tags)
+                .Include(p => p.Contacts)
+                .Include(p => p.Comments)
+                .Include("Contacts.ContactType")).FirstOrDefaultAsync();
+            return location;
+        }
+
+        /// <summary>
+        /// Get All Locations fully loaded
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IQueryable<Location>> GetAllFullyLoaded()
+        {
+            var location = (await (_dbContext.Locations.AsQueryable()
+                .Include(p => p.LocationPictures)
+                .Include(p => p.Tags)
+                .Include(p => p.Contacts)
+                .Include(p => p.Comments)
+                .Include("Contacts.ContactType")).ToListAsync()).AsQueryable();
+
+            return location;
+        }
+
+        #region Comments
+        /// <summary>
+        /// Saves comment
+        /// </summary>
+        /// <param name="locationComment"></param>
+        /// <returns></returns>
+        public async Task<int> SaveComment(LocationComment locationComment)
+        {
+            _dbContext.LocationComments.Add(locationComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Updates comment
+        /// </summary>
+        /// <param name="locationComment"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateComment(LocationComment locationComment)
+        {
+            var getLocationComment = await _dbContext.LocationComments.Where(c => c.CommentID == locationComment.CommentID).FirstOrDefaultAsync();
+            if (getLocationComment == null)
+                return 0;
+
+            var attachedEntry = _dbContext.Entry(getLocationComment);
+            attachedEntry.CurrentValues.SetValues(locationComment);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Deletes comment
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteComment(Guid commentId)
+        {
+            var objToDelete = _dbContext.LocationComments.Find(commentId);
+            _dbContext.LocationComments.Remove(objToDelete);
+            return await _dbContext.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Gets all comment
+        /// </summary>
+        /// <param name="locationId"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<LocationComment>> GetAllComments(Guid locationId)
+        {
+            return (await _dbContext.LocationComments
+               .Where(x => x.ContainerID == locationId).ToListAsync()).AsEnumerable();
+        }
+
+        #endregion
+    }
+}

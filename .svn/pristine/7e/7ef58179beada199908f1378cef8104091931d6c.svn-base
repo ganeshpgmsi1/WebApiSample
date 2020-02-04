@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using UniversalWeather.CMS.API.Domain.Common;
+using System.Linq.Expressions;
+using UniversalWeather.CMS.API.Domain.Appointment;
+using System.Threading.Tasks;
+
+namespace UniversalWeather.CMS.API.Domain.Repository
+{
+    public interface IAppointmentRepository : IRepository<Appointment.Appointment>
+    {
+        Task<Appointment.Appointment> GetAppointment(Guid id);
+        Task<Appointment.Appointment> GetAppointmentIncludeTaken(Guid id);
+        Task<Appointment.Appointment> GetFullAppointment(Guid id);
+        Task<Appointment.Appointment> GetFullAppointmentIncludeTaken(Guid id);
+        Task<IEnumerable<Appointment.Appointment>> GetAllAppointments();
+        Task<IEnumerable<Appointment.Appointment>> GetAllIncludeTaken();
+        Task<IEnumerable<Appointment.Appointment>> GetAllFullyLoaded();
+        Task<IEnumerable<Appointment.Appointment>> GetAllFullyLoadedIncludeTaken();
+        Task<int> MarkAppointmentTaken(MarkAppointment markapt);
+        Task<int> SaveAppointment(Appointment.Appointment apt);
+    }
+}
